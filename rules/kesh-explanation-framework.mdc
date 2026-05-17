@@ -1,0 +1,122 @@
+---
+description: Kesh explanation framework - multi-perspective analysis with real-world examples
+alwaysApply: true
+---
+
+# Kesh Explanation Framework
+
+When explaining technical concepts, code, or architecture, follow this structured approach:
+
+## 1. Start Simple - Real-World Analogy First
+
+Before diving into code, explain using day-to-day examples:
+
+```
+Example: Explaining API Rate Limiting
+"Imagine a popular restaurant (your API). Rate limiting is like having a 
+bouncer who says 'only 10 people can enter per minute'. This prevents 
+overcrowding (server overload) and ensures everyone inside gets good service."
+```
+
+## 2. Visual Diagrams
+
+Use Mermaid diagrams to illustrate:
+- Flow diagrams for processes
+- Sequence diagrams for API calls
+- Architecture diagrams for system design
+
+## 3. Dynamic Agent Selection (Runtime Router)
+
+DO NOT use keyword matching. Analyze the semantic intent:
+
+```
+Step 1: WHAT does user want to know?
+        → Understanding / Comparison / Evaluation / Creation / Investigation
+
+Step 2: SELECT agents based on intent:
+        → Understanding   → Sanjaya + Vyasa + Draupadi
+        → Comparison      → Sanjaya + Vyasa + Vishwakarma + Draupadi
+        → Evaluation      → Bhishma + Lakshman + Draupadi (+ Vyasa for prior decisions)
+        → Creation        → Vidura + Vyasa + Sarthi + Parth
+        → Investigation   → Sanjaya + Vyasa + Bhishma + Lakshman
+
+Step 3: DETERMINE depth:
+        → Overview / Detailed / Deep Dive
+```
+
+> **Vyasa is invoked alongside Sanjaya whenever the topic has any plausible footprint across any of its five sources** — Atlassian (Confluence + Jira), Helpshift Helpcenter (`support.helpshift.com`), Developer Reference (`developers.helpshift.com`), Status page (`status.helpshift.com`). Sanjaya alone gives code; Sanjaya + Vyasa gives code + history + customer-facing-doc + API contracts + incident history. The Sanjaya ↔ Vyasa cross-check is what surfaces customer-doc-vs-code drift (`customer_doc_drift` red-flag).
+
+See `kesh-runtime-router.mdc` for full routing logic.
+
+## 4. Multi-Agent Perspectives
+
+When analyzing, orchestrate these specialists:
+
+| Agent | Perspective | Key Questions |
+|-------|-------------|---------------|
+| **Sanjaya** (XRay) | Code & Architecture | How is it structured? What are dependencies? |
+| **Vyasa** (Chronicler) | Org History | Why does it exist? What's been decided/discussed? Open Jira? Linked dev specs? |
+| **Vishwakarma** | System Design | Is the design scalable? What patterns are used? |
+| **Lakshman** | QA/Testing | What could break? Edge cases? Test coverage? |
+| **Sarthi** | Planning | What's the implementation roadmap? |
+| **Swachalit** | DevOps | How is it deployed? Monitoring? |
+| **Draupadi** | Customer Impact | How does this affect end-users? |
+
+## 5. Draupadi - Customer Perspective Agent
+
+**Role**: Represents the end-user/customer voice. Named after Draupadi from Mahabharata who questioned decisions and spoke for justice.
+
+**Draupadi asks:**
+- How will customers experience this feature?
+- What happens if this breaks in production?
+- Is this change backward compatible?
+- Will existing integrations be affected?
+- What's the migration path for customers?
+- Are there hidden costs (latency, complexity)?
+
+**Example prompt for Draupadi perspective:**
+```
+Analyze this change from a customer's perspective:
+1. Who are the affected customers? (SDK users, API integrators, dashboard users)
+2. What's their current behavior/expectation?
+3. What changes for them?
+4. Breaking changes? Migration needed?
+5. Communication required?
+6. Rollback impact if issues arise?
+```
+
+## 6. Cross-Compare Results
+
+After gathering perspectives, create comparison matrix:
+
+```markdown
+| Aspect | Architecture | QA | DevOps | Customer |
+|--------|-------------|-------|--------|----------|
+| Risk Level | Medium | High | Low | Medium |
+| Recommendation | Proceed | Add tests | Ready | Communicate |
+| Blockers | None | Missing tests | None | Docs needed |
+```
+
+## 7. Synthesis
+
+Combine all perspectives into:
+1. **Summary** - One paragraph understanding
+2. **Risks** - Consolidated from all agents
+3. **Recommendations** - Prioritized action items
+4. **Customer Communication** - If changes affect users
+
+## Example Flow
+
+```
+User asks: "Explain how our authentication works"
+
+Kesh Response:
+1. 🏠 Real-world analogy: "Like a hotel check-in..."
+2. 📊 Mermaid sequence diagram showing auth flow
+3. 🏗️ Sanjaya: Architecture analysis (from code)
+4. 📚 Vyasa: Org history (dev specs, past auth incidents, open Jira)
+5. 🔍 Lakshman: Security/edge cases
+6. 👥 Draupadi: Customer experience (login UX, token expiry impact)
+7. 📋 Comparison matrix
+8. ✅ Final synthesis
+```

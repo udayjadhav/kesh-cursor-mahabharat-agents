@@ -1,0 +1,146 @@
+---
+description: Multi-agent design must always consider reuse of existing data, schema, fields, and link types BEFORE proposing new ones. Anti-pattern: anchoring on the obvious key and missing signal that already exists on the data model. Companion rule: every consumer of the reused signal must be audited, including consumers in external dependencies and other repos.
+globs: **/*.md, **/*.mdc, **/scratch/**, **/specs/**, **/docs/**
+version: 1.1.0
+alwaysApply: true
+---
+
+# Reuse Before Extend
+
+## The failure pattern this rule prevents
+
+When a multi-agent flow generates architectural options for a routing / lookup / association problem, it tends to **anchor on the most-obvious key** (e.g., `Issue.app_id` for routing) and generate options that all add new schema, new link types, or new admin UX. The cheaper alternative — using a field that already carries the signal but lives elsewhere on the data model — is missed because no agent in the flow is responsible for proposing it.
+
+This is a real regression class. The canonical failure case is documented in `.cursor/scratch/req-2912-investigation-supportchannel-app-id-flow.md` (Sections 1-4) — the email-CWZ spec at `.cursor/scratch/email-cwz-spec-v3.md` proposed a new link type `"supportchannels"` in `workzones_entity_mapping` for routing email Issues to custom workzones, while `Issue.meta.user_reported_app_id` already carried the customer-app id captured server-side from the matched supportchannel. The cheaper realisation was to route the existing app→workzone lookup through the meta field. None of the agents (Sanjaya / Vishwakarma / Krishna / Bhishma) caught this.
+
+## Mandatory checks (per agent)
+
+### Vishwakarma (architecture, step 4 of the canonical flow)
+
+Every architectural option set MUST include an explicitly-labelled **`Option 0 — Reuse-only`** before any composing options:
+
+- The option that uses **only** data, schema, link types, fields, and indexes that exist in the system today.
+- Zero new collections. Zero new admin UX. Zero new link-type registrations. Zero new defspec fields.
+- The implementation locus is restricted to: a code-path change in an existing resolver, a feature-flag-gated branch, or a new pure function that reads existing fields.
+- If the answer is "Option 0 is impossible because no existing field carries the signal," that fact MUST be stated explicitly with a Sanjaya citation proving every relevant field on the source entity was checked.
+
+`Option 0` is rejected ONLY if Vishwakarma can name **specific** fields on **specific** defspecs / models that were checked and found insufficient, AND can cite Sanjaya's xray for the negative finding. Generic "the data model doesn't support this" without enumerated checks fails the rule.
+
+### Krishna (strategic gate, step 11 of the canonical flow)
+
+Krishna's challenge framework MUST include a **Data Model Reuse Audit** as a mandatory section. Three questions, all of which must be answered with citations:
+
+1. **Is there a field on the source entity that already carries this signal?** Walk every field on the relevant defspec / model. For each, state whether it carries the signal (yes/no/partial) and cite the line where it is set in code.
+2. **Are we proposing new schema when the existing schema would do?** If Vishwakarma's `Option 0` is missing or rejected, Krishna re-derives one or proves it cannot exist.
+3. **Is the option-space anchored on the obvious key?** Identify the "obvious key" (the field that the proposal treats as the routing/lookup key). State whether other fields on the same entity could serve the same purpose. If yes, demand `Option 0` be added to the matrix.
+
+If `Option 0` is missing from Vishwakarma's output, Krishna's verdict is **RECONSIDER** by default, with the action item: *"add Option 0 to the matrix before proceeding to Decision Engine."*
+
+### Bhishma (code review, step 8 of the canonical flow)
+
+Bhishma's review structure MUST include a **Schema Reuse** check (insert as the first item under "API & BACKWARD COMPATIBILITY"):
+
+- For every new field, new collection, new index, new defspec, or new link-type registration in the diff, verify that no existing field on the same entity carries the signal.
+- If a `Sanjaya` reference exists in the spec or PR description, cite the field-by-field audit that justified the new schema.
+- Severity: 🟠 **HIGH** if a new field is added without a documented reuse audit; 🔴 **CRITICAL** if a new link type / new collection is added without one.
+
+### Sanjaya (xray, step 2 of the canonical flow)
+
+Sanjaya's output for any routing / lookup / association problem MUST include a **Field Carrier Inventory** subsection: for each entity in the relevant subsystem, enumerate every field and one-line state what signal it carries (server-set vs user-controlled, when it is populated, when it is nil). This inventory is the input Vishwakarma needs to construct `Option 0` honestly.
+
+For any task that emits new values into a query, filter, event, or payload that passes through an external library, Sanjaya MUST also produce an **External Dependency Contract Inventory** — see the Consumer Audit section below.
+
+## Consumer Audit (mandatory when reusing a field)
+
+The reuse audit covers **producers** (the writers of the signal). It does NOT automatically cover **consumers** (readers, indexers, query layers, view validators, formatters, external libraries that operate on the signal). A reuse-only design fails in production when a downstream consumer doesn't accept the reused field — even though every producer is correct.
+
+This is the second canonical failure pattern. The email-CWZ Option 0 reused `:meta.user_reported_app_id` and updated the producers + the workzone resolver correctly. It missed that the smart-view filter compiler in the external `haystack` library didn't know the field. The filter compiled fine in unit tests (which stubbed the boundary) and crashed in production at `haystack-7.query.engine/es-pre-processor` on the first real call.
+
+### What to enumerate
+
+Before approving any reuse-only spec, enumerate every consumer that must accept the reused field. The list is task-specific, but always covers these categories:
+
+| Consumer category | Examples |
+|---|---|
+| Storage / index mapping | Elasticsearch field mappings, MongoDB indexes, Postgres columns |
+| Query DSL registries (incl. external deps) | `haystack.field-spec`, Chanakya rule specs, search DSL allow-lists, advsearch glossary |
+| View / display-filter validation | `valid-default-view-props`, view-coercion whitelists, smartview compile path |
+| Permission / visibility / auth checks | role-based filters, workzone-scope checks, issue-detail authorization |
+| Read-time formatters / serializers | API response formatters, JSON renderers, audit-trail formatters |
+| Indexers / percolator generators | smartview percolators, automation indexes, search async-update pipelines |
+| Analytics / event pipelines | Niati / event emitters that pivot on the field |
+| Downstream services / webhooks / Kafka topics | anything that re-emits the signal off-process |
+| External SDKs / clients | mobile SDK, web SDK, hs-api clients, third-party integrations |
+
+For each consumer that is in scope for the task, mark exactly one:
+- ✅ **Already accepts** — cite the file/line that proves it
+- ⚠️ **Needs change** — describe the change required and the repo / artifact it lives in
+- ❌ **Not in scope** — explain why this consumer does not see the signal for this task
+
+### Cross-repo consumers (the most-missed kind)
+
+When a consumer lives **outside the current repo** — an external library jar, another service, another team's repo — the spec MUST:
+
+1. Name the external repo / artifact explicitly (e.g., `helpshift/haystack`)
+2. State the contract surface that needs to change (e.g., `haystack-7.query.genesis/field-spec`)
+3. Plan the cross-repo PR sequence: external repo first → publish new artifact version → bump version in current repo's manifest
+4. List the version coordinates that need to change (`project.clj`, `package.json`, `go.mod`, etc.) so the bumped dep actually reaches CI / sbox / prod
+
+A spec that lists only same-repo changes when an external contract is involved is **incomplete**. The same applies to PRs — a PR diff that touches a producer but not the linked external consumer is incomplete.
+
+### Per-agent ownership
+
+- **Sanjaya** produces an **External Dependency Contract Inventory** alongside the Field Carrier Inventory whenever the task emits values into a query / filter / event that passes through an external library. The inventory names each external artifact (with coordinates), the contract surface (file path inside the jar / upstream repo URL), whether the surface accepts the new value today, and if not, the exact change required.
+- **Vishwakarma** maps every applicable consumer category to ✅ / ⚠️ / ❌ in the architecture doc. Every ⚠️ becomes an explicit task line in Sarthi's plan, tagged with the repo it lives in.
+- **Bhishma** runs the Consumer / Cross-Boundary Contract Check on the diff (see Bhishma section above for severity table). The diff must either modify every ⚠️ consumer in this repo OR link to the cross-repo PR + version-bump plan that does.
+- **Kripacharya** verifies before SHIP that every ⚠️ consumer has a landed PR (or an explicit same-PR-series commit), not just stated intent. Unlanded external-repo PRs = NOT READY.
+
+### External Dependency Contract Inventory format (Sanjaya output)
+
+| External artifact | Coordinate (manifest) | Contract surface | Accepts today? | Change required if no | Cross-repo? |
+|---|---|---|---|---|---|
+| `helpshift/haystack` | `project.clj` → `helpshift/haystack "5.6.0"` | `haystack-7.query.genesis/field-spec` map | ❌ no entry for `:user_reported_app_id` | add `{:user_reported_app_id {:es-field :meta.user_reported_app_id :type :enum :description "..." :filter_type "Issue"}}` | YES — needs new haystack version + Moby dep bump |
+| ... | ... | ... | ... | ... | ... |
+
+### How to find the external contract surfaces
+
+For each library the signal touches, walk forward from the producer until the signal:
+- Reaches a network / disk / wire boundary (the signal leaves the process)
+- Is dropped (no further consumer)
+- Is transformed by a function that reads from a config / registry / spec map — that map IS the contract surface; record it
+
+If you cannot trace the full chain because a transform is in an external jar you didn't read, that itself is an explicit finding: "unable to verify external consumer X; needs introspection before approval".
+
+## What "reuse" specifically means here
+
+- **Reuse a field:** the data is already captured on an existing entity. Read it from there; do not re-capture under a new name.
+- **Reuse a link type:** the polymorphic mapping table (e.g., `workzones_entity_mapping`) already supports the entity type you need. Add a row with the existing type; do not register a new type.
+- **Reuse an index:** the existing index on the source entity supports the query you need. Use it; do not add a parallel index.
+- **Reuse a code path:** an existing resolver / handler / pipeline already does the lookup you need. Extend it with a fallback branch; do not write a parallel resolver.
+
+Reuse is preferred over extension whenever the existing artefact carries the signal at the trust level the consumer needs. Trust level is part of the audit (server-set vs user-controlled vs admin-controlled vs SDK-controlled — these are not interchangeable for security-sensitive consumers).
+
+## Self-check before publishing any architectural spec
+
+Before any spec / RFC / impact-analysis is sent to Confluence, the author (or the Kesh flow producing it) MUST verify these are present:
+
+- [ ] Sanjaya output contains a Field Carrier Inventory for the relevant entities.
+- [ ] Sanjaya output contains an External Dependency Contract Inventory if the change emits new values into queries / filters / events / payloads.
+- [ ] Vishwakarma options matrix includes a row labelled `Option 0 — Reuse-only`.
+- [ ] If `Option 0` is rejected, the rejection cites specific fields that were checked.
+- [ ] Krishna's challenge contains a Data Model Reuse Audit section.
+- [ ] Decision Engine's tradeoff matrix scores `Option 0` against every other option.
+- [ ] Consumer Audit table produced, with every applicable consumer category marked ✅ / ⚠️ / ❌.
+- [ ] Every ⚠️ consumer has either a same-PR diff or a linked cross-repo PR + version-bump plan.
+
+A spec missing any of these is incomplete. Reviewers should request the missing artefact before approving.
+
+## Why this rule exists
+
+Multi-agent systems with strong "design new architecture" agents default to additive proposals. The cheapest answer — *"the field is already on the Issue, just on a different name"* — gets lost because no single agent is incentivised to surface it. This rule names the failure pattern, assigns ownership for each prevention check, and makes the absence of a reuse-only option a structural defect (not an oversight).
+
+The Consumer Audit half of this rule exists for the symmetric failure: once the reuse-only design is chosen, the multi-agent flow audits producers but typically skips downstream consumers (especially those in external libraries / other repos). The result is a design that looks complete on paper, passes unit tests that stub the boundary, and crashes in production on the first real call.
+
+Cost of getting this wrong:
+- Missing the reuse-only option: email-CWZ Option A sized at 26-40 working days vs Option 0 at plausibly 5-8 days — costs 3-4 weeks of engineering time per affected spec.
+- Missing the consumer audit: the email-CWZ Option 0 implementation passed local checks and crashed on the first sbox call with `Unable to walk hierarchical query` — a production hotfix that should have been part of the original design, plus a cross-repo PR sequence that wasn't planned for.

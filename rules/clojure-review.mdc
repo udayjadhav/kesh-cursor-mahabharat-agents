@@ -1,0 +1,950 @@
+---
+description: Clojure style, idioms, conventions, testing, docstrings & namespacing — based on the Helpshift Clojure Style Guide (fork of community guide). Used by Bhishma (review), Parth (impl), Swachalit (tests).
+globs: **/*.clj,**/*.cljs,**/*.cljc,**/*.edn
+alwaysApply: false
+version: 2.1.0
+---
+
+# Clojure Style & Review Rules
+
+Enforced during code review (Bhishma) and code authoring (Parth). Based on the Helpshift Clojure Style Guide — a fork of https://guide.clojure.style/ with Helpshift-specific conventions.
+
+> **Companion reference:** `~/.cursor/rules/clojure-daily-tips.mdc` is a lightweight quick-reference covering the most common layout / `ns` / indentation rules for daily programming. Use it for fast lookups. This file (`clojure-review.mdc`) is the **authoritative** reference — if the two ever disagree, this one wins.
+
+Severity mapping:
+- 🔴 **CRITICAL** — bug risk, correctness issue, or unsafe side effect (block merge)
+- 🟠 **HIGH** — idiomatic/clarity violation that will confuse readers or hide bugs
+- 🟡 **MEDIUM** — readability / maintainability
+- 🔵 **LOW** — style / nitpick
+
+---
+
+## 1. Source Code Layout
+
+### 1.1 Max line length — 🔵 LOW
+- Keep lines ≤ 80 chars where feasible. Team-wide consensus may raise to 100 or 120. Never go beyond 120.
+
+### 1.2 Spaces, not tabs — 🟡 MEDIUM
+- Indent with spaces. No hard tabs.
+
+### 1.3 Body indentation — 🟡 MEDIUM
+- Use **2 spaces** to indent the bodies of `def*`, special forms, and body-form macros (`let`, `loop`, `when`, `when-let`, `cond`, `as->`, `cond->`, `case`, `with-*`, etc.).
+
+### 1.4 Function argument alignment — 🟡 MEDIUM
+- When arguments span multiple lines **and the first arg is on the same line as the fn name**, vertically align args with the first arg:
+```clojure
+(filter even?
+        (range 1 10))   ; ✅
+```
+- When no args are on the same line as the fn name, use **single-space indent** from the opening paren:
+```clojure
+(filter
+ even?
+ (range 1 10))          ; ✅
+```
+
+### 1.5 `let`/binding vector alignment — 🟡 MEDIUM
+```clojure
+(let [thing1 "some stuff"
+      thing2 "other stuff"]
+  ...)                  ; ✅
+```
+
+### 1.6 Map key alignment — 🟡 MEDIUM
+```clojure
+{:thing1 thing1
+ :thing2 thing2}        ; ✅
+```
+
+### 1.7 Bracket spacing — 🟡 MEDIUM
+- One space separates text from brackets externally; no internal padding.
+```clojure
+(foo (bar baz) quux)    ; ✅
+(foo(bar baz)quux)      ; ❌
+(foo ( bar baz ) quux)  ; ❌
+```
+
+### 1.8 No commas in sequential literals — 🔵 LOW
+```clojure
+[1 2 3]                 ; ✅
+[1, 2, 3]               ; ❌
+```
+- Optional commas in map literals are fine if they aid readability.
+
+### 1.9 Gather trailing parens — 🟡 MEDIUM
+- Trailing parens collapse onto the same line. Exception: `(comment ...)` rich-comment blocks may keep the closing paren on its own line.
+
+### 1.10 Empty lines between top-level forms — 🔵 LOW
+- Use **two blank lines** between top-level forms. Grouping of related `def`s is an allowed exception.
+
+### 1.11 No blank lines inside definitions — 🟡 MEDIUM
+- No blank lines inside a `defn`/`defmacro` body. If you need separation, the function is probably too big — refactor. Exception: `cond`/`let` pair separation when they span multiple lines.
+
+### 1.12 Trailing whitespace — 🔵 LOW
+- Strip all trailing whitespace.
+
+### 1.13 Unix line endings + terminal newline — 🔵 LOW
+- LF line endings. Every file ends with a newline.
+
+---
+
+## 2. Namespaces (`ns` form)
+
+### 2.1 One namespace per file, one file per namespace — 🟠 HIGH
+- Never `in-ns` across files. Never declare multiple `ns` forms.
+
+### 2.2 No single-segment namespaces — 🟠 HIGH
+```clojure
+(ns example.ns)         ; ✅
+(ns example)            ; ❌
+```
+
+### 2.3 Max 5 namespace segments — 🟡 MEDIUM
+- Avoid overly long, deeply nested namespaces.
+
+### 2.4 Comprehensive `ns` form order — 🟡 MEDIUM
+- Order: `:refer-clojure`, then `:require`, then `:import`.
+
+### 2.5 One require/import per line; sorted alphabetically — 🟠 HIGH
+```clojure
+(ns examples.ns
+  (:require
+   [baz.core :as baz]
+   [clojure.java.shell :as sh]
+   [clojure.set :as set]
+   [clojure.string :as str :refer [blank?]]
+   [foo.bar :as foo]))
+```
+- Sorted requires improve diff quality and prevent duplicates.
+
+### 2.6 Prefer `:require :as` — 🟠 HIGH
+- Preference order: `:require :as` > `:require :refer [...]` > `:require :refer :all` > `:use` (deprecated — never use in new code).
+
+### 2.7 Idiomatic namespace aliases — 🟡 MEDIUM
+
+Use these aliases when requiring common namespaces. Inconsistency across a codebase is a finding.
+
+| Namespace | Idiomatic alias |
+|---|---|
+| `clojure.string` | `str` |
+| `clojure.set` | `set` |
+| `clojure.walk` | `walk` |
+| `clojure.zip` | `zip` |
+| `clojure.edn` | `edn` |
+| `clojure.java.io` | `io` |
+| `clojure.java.shell` | `sh` |
+| `clojure.math` | `math` |
+| `clojure.datafy` | `datafy` |
+| `clojure.pprint` | `pp` |
+| `clojure.spec.alpha` | `s` |
+| `clojure.core.async` | `async` |
+| `clojure.tools.logging` | `log` |
+| `clojure.tools.cli` | `cli` |
+| `clojure.data.csv` | `csv` |
+| `clojure.data.xml` | `xml` |
+| `cheshire.core` | `json` |
+| `clj-yaml.core` | `yaml` |
+| `clj-http.client` | `http` |
+| `next.jdbc` | `jdbc` |
+| `java-time` | `time` |
+| `hugsql.core` | `sql` |
+
+### 2.8 Alias derivation recipe for non-idiomatic namespaces — 🔵 LOW
+- Drop leading segments; keep enough trailing segments to stay unique. Dotted aliases are fine.
+- Eliminate redundant words (`core`, `clj`).
+```clojure
+[clj-time.core     :as time]
+[clj-time.format   :as time.format]
+```
+
+---
+
+## 3. Naming
+
+### 3.1 Use `kebab-case` for everything — 🟡 MEDIUM
+- Functions, vars, keywords, namespace segments.
+```clojure
+(def user-name "Alice")                        ; ✅
+(def user_name "Alice")                        ; ❌
+(def apiResponse {:eventType "a"})             ; ❌
+```
+
+### 3.2 Predicate functions end with `?` — 🟠 HIGH
+```clojure
+(valid-user? user)        ; ✅
+(archived? report)        ; ✅
+(is-valid-user user)      ; ❌
+(has-permission user)     ; ❌
+```
+
+### 3.3 Side-effecting / STM-unsafe functions end with `!` — 🟠 HIGH
+- Mutations, I/O, `reset!`, `swap!`, `alter`, `send`, sending emails, writing files, DB writes.
+```clojure
+(save-user! user)         ; ✅
+(send-email! to subj body); ✅
+```
+
+### 3.4 No `get-` / `is-` / `has-` / `can-` prefixes — 🟡 MEDIUM
+```clojure
+(defn user-name [user] ...)   ; ✅
+(defn get-user-name [...])    ; ❌
+```
+
+### 3.5 Conversion fns use `->`, not `-to-` — 🔵 LOW
+```clojure
+(defn f->c [f] ...)           ; ✅
+(defn f-to-c [f] ...)         ; ❌
+```
+
+### 3.6 `CapitalCase` for protocols, records, structs, types — 🟠 HIGH
+- Acronyms stay uppercase: `HTTPClient`, `XMLParser`.
+
+### 3.7 Earmuffs for dynamic vars — 🟠 HIGH
+```clojure
+(def ^:dynamic *request* nil)   ; ✅
+(def ^:dynamic request nil)     ; ❌
+```
+
+### 3.8 No special notation for constants — 🔵 LOW
+```clojure
+(def max-size 10)         ; ✅
+(def MAX-SIZE 10)         ; ❌ Java-style
+(def +max-size+ 10)       ; ❌ CL-style
+```
+
+### 3.9 Unused bindings use `_` — 🟡 MEDIUM
+- Preferred: `_name` (named but prefixed) when the name aids readability.
+```clojure
+(defn handler [ctx _user] ...)         ; ✅
+(defn handler [ctx {:keys [id] :as _user}] ...) ; ✅
+(dotimes [_ 3] (println "hi"))         ; ✅
+```
+
+### 3.10 Idiomatic parameter names — 🔵 LOW
+Follow `clojure.core`:
+- `f g h` — fn input
+- `n` — integer size
+- `i index` — integer index
+- `x y` — numbers
+- `xs` — sequence
+- `m` — map
+- `k ks` — key(s)
+- `v vs` — value(s)
+- `s` — string
+- `re` — regex
+- `sym` — symbol
+- `coll` — collection
+- `pred` — predicate
+- `& more` — variadic
+- `xf` — transducer
+- `ns` — namespace
+- Macros: `expr`, `body`, `binding`
+- Methods: `this` for first arg in `defprotocol`/`deftype`/`defrecord`/`reify`
+
+---
+
+## 4. Functions
+
+### 4.1 Length ≤ 10 LOC — 🟡 MEDIUM
+- Ideal target: ≤ 5 LOC. Longer = refactor candidate.
+
+### 4.2 Max 3–4 positional parameters — 🟡 MEDIUM
+- More than 4 → pass a map.
+
+### 4.3 Prefer pre/post conditions over in-body checks — 🟡 MEDIUM
+```clojure
+(defn foo [x]
+  {:pre [(pos? x)]}
+  (bar x))                 ; ✅
+```
+
+### 4.4 Multi-arity order: fewest args → most — 🟡 MEDIUM
+```clojure
+(defn foo
+  ([x]   (foo x 1))
+  ([x y] (+ x y)))         ; ✅
+```
+
+### 4.5 Optional newline after fn name — 🔵 LOW
+- Either of these is fine:
+```clojure
+(defn foo [x] (bar x))
+
+(defn foo
+  [x]
+  (bar x))
+```
+- Bad: arg vector on same line when body is separate:
+```clojure
+(defn foo
+  [x] (bar x))             ; ❌
+```
+
+### 4.6 Multimethod `dispatch-val` placement — 🔵 LOW
+```clojure
+(defmethod foo :bar [x] (baz x))   ; ✅ single line
+(defmethod foo :bar                ; ✅ multi-line
+  [x]
+  (baz x))
+```
+
+### 4.7 Multi-arity body indentation — 🔵 LOW
+- Each arity body indents aligned with its params (2 extra spaces past the arity's opening paren).
+
+### 4.8 Docstring placement — 🟠 HIGH
+- Docstring goes **after the fn name**, before the arg vector. Placing it inside the body does NOT attach it to the var.
+```clojure
+(defn foo "docstring" [x] (bar x))    ; ✅
+(defn foo [x] "docstring" (bar x))    ; ❌
+```
+
+### 4.9 Mark private vars/fns — 🟡 MEDIUM
+```clojure
+(defn- helper [] ...)           ; ✅
+(def ^:private thing ...)       ; ✅
+(defn ^:private helper [] ...)  ; ❌ verbose
+```
+- To access a private var from outside (e.g., tests), use `@#'some.ns/var`.
+
+---
+
+## 5. Core Idioms
+
+### 5.1 `when` vs `if` — 🟠 HIGH
+- Use `when` instead of `if` with only a truthy branch.
+```clojure
+(when pred (foo) (bar))         ; ✅
+(if pred (do (foo) (bar)))      ; ❌
+```
+
+### 5.2 `if-let` / `when-let` — 🟠 HIGH
+```clojure
+(if-let [r (foo x)]  (use r) (fallback))   ; ✅
+(when-let [r (foo x)] (use r) (more r))    ; ✅
+```
+
+### 5.3 `if-not` / `when-not` — 🟡 MEDIUM
+```clojure
+(if-not pred (foo))             ; ✅
+(if (not pred) (foo))           ; ❌
+
+(when-not pred (foo) (bar))     ; ✅
+(when (not pred) ...)           ; ❌
+(if-not pred (do (foo) (bar)))  ; ❌  use when-not
+```
+
+### 5.4 `not=` — 🔵 LOW
+```clojure
+(not= a b)                      ; ✅
+(not (= a b))                   ; ❌
+```
+
+### 5.5 `inc` / `dec` / `pos?` / `neg?` / `zero?` — 🔵 LOW
+```clojure
+(inc x) (dec x)                 ; ✅
+(+ x 1) (- x 1)                 ; ❌
+
+(pos? x) (neg? x) (zero? x)     ; ✅
+(> x 0) (< x 0) (= x 0)         ; ❌
+```
+
+### 5.6 Flexible comparison chaining — 🔵 LOW
+```clojure
+(< 5 x 10)                      ; ✅
+(and (> x 5) (< x 10))          ; ❌
+```
+
+### 5.7 Nil punning for empty sequence check — 🟡 MEDIUM
+```clojure
+(when (seq s) ...)              ; ✅
+(when-not (empty? s) ...)       ; ❌
+```
+
+### 5.8 `vec` over `(into [] ...)` — 🔵 LOW
+```clojure
+(vec some-seq)                  ; ✅
+(into [] some-seq)              ; ❌
+```
+
+### 5.9 `boolean` for truthy coercion — 🔵 LOW
+```clojure
+(boolean x)                     ; ✅
+(if x true false)               ; ❌
+```
+
+### 5.10 Prefer higher-order fns over `loop`/`recur` — 🟠 HIGH
+- Replace manual loops with `map`, `filter`, `reduce`, `mapcat`, `keep`, `some`, `reductions`.
+- `loop`/`recur` acceptable only for custom control flow or stack-safe recursion.
+
+### 5.11 Function literals `#(...)` — 🔵 LOW
+- Single param → `%` (not `%1`).
+- Multiple params → `%1`, `%2`.
+- Don't use `#()` for bodies with multiple forms — use `(fn [x] ...)`.
+- Don't wrap an existing fn unnecessarily: `(filter even? coll)` not `(filter #(even? %) coll)`.
+
+### 5.12 Prefer anonymous fns over `complement`/`comp`/`partial` — 🔵 LOW
+- For most cases, `#(not (pred? %))` is clearer than `(complement pred?)`.
+- Exception: `comp` is idiomatic for **transducer chains**.
+
+### 5.13 Threading macros — 🟠 HIGH
+
+**Use `->` / `->>` for linear pipelines of transformations.**
+
+- `->` threads value as **first** arg (use for `assoc`, `update`, `get`, `conj`).
+- `->>` threads value as **last** arg (use for `map`, `filter`, `reduce`, `remove`).
+- Mixing them wrong = 🟠 HIGH finding.
+
+**When to use:**
+- Series of pure transformations
+- Output of each step feeds the next
+- Pipeline reads top-to-bottom
+
+**When to avoid:**
+- Branching / conditional logic → use `cond->`, `cond->>`, `let`, `cond`
+- Single call or 2-step pipeline where threading adds ceremony
+
+**Formatting:**
+- No parens for zero-arg fn calls: `(-> x fizz :foo first frob)` ✅
+- Parens required when passing args: `(-> x (fizz a b) :foo)` ✅
+- Vertically align threaded steps:
+```clojure
+(->> (range)
+     (filter even?)
+     (take 5))                  ; ✅
+```
+
+### 5.14 `cond` idioms — 🟠 HIGH
+- `:else` as final catch-all (not `true`, not `:default`):
+```clojure
+(cond
+  (neg? n) "negative"
+  (pos? n) "positive"
+  :else    "zero")              ; ✅
+```
+- **`condp`** > `cond` when predicate + expr don't change:
+```clojure
+(condp = x
+  10 :ten
+  20 :twenty
+  :dunno)                       ; ✅
+```
+- **`case`** > `condp` when test values are compile-time constants:
+```clojure
+(case x
+  10 :ten
+  20 :twenty
+  :dunno)                       ; ✅
+```
+
+### 5.15 Short forms in `cond` — 🟡 MEDIUM
+- If all branches fit one line, align them. If they don't fit, separate pairs with blank lines or comments for visual grouping.
+
+### 5.16 Set as predicate — 🟡 MEDIUM
+```clojure
+(remove #{1} coll)                                       ; ✅
+(filter #{\a \e \i \o \u} "string")                      ; ✅
+(remove #(= % 1) coll)                                   ; ❌
+```
+
+### 5.17 Keywords / maps / collections as functions — 🟡 MEDIUM
+```clojure
+(:name m)                   ; ✅  keyword as fn on map
+(get m :name)               ; ❌  verbose
+(m :name)                   ; ❌  NPE risk if m is nil
+
+((juxt :a :b) {:a 1 :b 2})  ; ✅  keywords as fns
+```
+
+### 5.18 `list*` over nested `cons` — 🔵 LOW
+```clojure
+(list* 1 2 3 [4 5])                 ; ✅
+(cons 1 (cons 2 (cons 3 [4 5])))    ; ❌
+```
+
+### 5.19 Sugared Java interop — 🟠 HIGH
+```clojure
+(java.util.ArrayList. 100)   ; ✅ object creation
+(new java.util.ArrayList 100); ❌
+
+(Math/pow 2 10)              ; ✅ static method
+(.substring "hello" 1 3)     ; ✅ instance method
+Integer/MAX_VALUE            ; ✅ static field
+(.someField obj)             ; ✅ instance field
+```
+
+### 5.20 Compact metadata for boolean flags — 🔵 LOW
+```clojure
+(def ^:private a 5)                   ; ✅
+(def ^{:private true} a 5)            ; ❌ verbose
+```
+
+### 5.21 Shadowing / rebinding — 🟠 HIGH
+- Don't shadow `clojure.core` names with local bindings (e.g., don't name params `map`, `list`, `str`, `key`).
+- Don't `def` inside a function body.
+- Use `alter-var-root` (not `def`) to change a var's value at runtime.
+
+### 5.22 Forward references — 🟡 MEDIUM
+- Avoid. If needed, use `declare`.
+
+---
+
+## 6. Data Structures
+
+### 6.1 Avoid lists for generic storage — 🟡 MEDIUM
+- Use vectors, maps, or sets unless list semantics are specifically required.
+
+### 6.2 Keywords as map keys — 🟠 HIGH
+```clojure
+{:name "Bruce" :age 30}          ; ✅
+{"name" "Bruce" "age" 30}        ; ❌
+```
+
+### 6.3 Literal collection syntax — 🟡 MEDIUM
+```clojure
+[1 2 3]                          ; ✅
+#{1 2 3}                         ; ✅ (only for compile-time constants)
+(vector 1 2 3)                   ; ❌
+(hash-set 1 2 3)                 ; ❌
+#{(f) (g)}                       ; ❌ runtime error if values collide
+(hash-set (f) (g))               ; ✅ runtime-computed set
+```
+
+### 6.4 Avoid index-based access — 🟡 MEDIUM
+- Use destructuring, `first`/`second`/`nth`, or keyword access.
+
+### 6.5 Avoid transients, Java collections, Java arrays — 🟡 MEDIUM
+- Transients: only for perf-critical hot paths.
+- Java collections/arrays: only for interop or primitive-heavy perf code.
+
+---
+
+## 7. Records, Types, Protocols
+
+### 7.1 Use factory fns, not interop constructors — 🟠 HIGH
+```clojure
+(->Foo 1 2)                   ; ✅
+(map->Foo {:a 1 :b 2})        ; ✅ (records only)
+(Foo. 1 2)                    ; ❌
+```
+
+### 7.2 Custom constructors — 🟡 MEDIUM
+- When you need validation, wrap in a named fn (e.g., `make-customer`). Don't override the auto-generated `->Foo` / `map->Foo`.
+
+---
+
+## 8. Mutation
+
+### 8.1 Refs
+- Wrap I/O in `io!` macro so accidental transactional use throws.
+- Prefer `alter` over `ref-set` — 🟡 MEDIUM.
+- Keep transactions small; don't mix short/long running transactions on same ref.
+
+### 8.2 Agents
+- `send` — CPU-bound work, never blocks.
+- `send-off` — blocking / I/O / sleeping work.
+- Using the wrong one = 🟠 HIGH.
+
+### 8.3 Atoms
+- Prefer `swap!` over `reset!` when reading the current value matters — 🟡 MEDIUM.
+- Don't update atoms inside STM transactions — 🔴 CRITICAL (breaks transactional semantics).
+
+---
+
+## 9. Math & Strings
+
+### 9.1 Prefer `clojure.math` over Java interop — 🟡 MEDIUM
+```clojure
+(math/pow 2 5)                ; ✅
+(Math/pow 2 5)                ; ok-ish (pre-1.11 acceptable)
+```
+
+### 9.2 Prefer `clojure.string` over Java interop — 🟠 HIGH
+```clojure
+(str/upper-case s)            ; ✅
+(.toUpperCase s)              ; ❌
+```
+
+---
+
+## 10. Exceptions
+
+### 10.1 Reuse existing exception types — 🟡 MEDIUM
+- Throw `IllegalArgumentException`, `IllegalStateException`, `UnsupportedOperationException`, `IOException` rather than inventing new ones.
+
+### 10.2 `with-open` over `try/finally` for closeables — 🟠 HIGH
+
+---
+
+## 11. Macros
+
+### 11.1 Don't write a macro when a fn will do — 🟠 HIGH
+### 11.2 Write macro usage example first, then the macro — 🔵 LOW
+### 11.3 Break complicated macros into helper fns — 🟡 MEDIUM
+- Macro = syntactic sugar. The core logic should be a plain function.
+### 11.4 Prefer syntax-quoted forms (`` `form ``) over manual list construction — 🟡 MEDIUM
+
+---
+
+## 12. `let` Bindings
+
+### 12.1 When to use `let` — ✅
+- Value used more than once
+- Name improves readability
+- Avoids recomputation
+
+### 12.2 When to avoid `let` — 🟡 MEDIUM
+- Single-use throwaway values
+- When threading or `comp` expresses intent more directly
+```clojure
+;; ❌ redundant let
+(let [doubled (map #(* 2 %) xs)
+      big     (filter #(> % 10) doubled)]
+  big)
+
+;; ✅ threading
+(->> xs (map #(* 2 %)) (filter #(> % 10)))
+```
+
+---
+
+## 13. `map` / `filter` / `reduce`
+
+Replace manual `loop`/`recur` with sequence ops whenever possible — 🟠 HIGH.
+
+```clojure
+(map inc xs)                          ; ✅
+(filter even? xs)                     ; ✅
+(reduce + xs)                         ; ✅
+(reduce (fn [acc x] (assoc acc (:id x) x)) {} records)  ; ✅
+```
+
+---
+
+## 14. Metadata Conventions
+
+Recommended metadata keys for public APIs:
+
+- `:added "0.5"` — version introduced (omit patch for SemVer)
+- `:changed "0.6"` — version of last behavior change
+- `:deprecated "0.8"` or `:deprecated true`
+- `:superseded-by "new-fn"` or `"other.ns/new-fn"`
+- `:see-also ["related-fn" "other.ns/another-fn"]`
+- `:no-doc true` — hide from generated API docs
+- `:style/indent N` — indentation hint for CIDER/tooling
+
+---
+
+## 15. Comments
+
+### 15.1 Structure — 🔵 LOW
+- `;;;;` — heading / section separator
+- `;;;` — top-level comment (outside any def)
+- `;;` — fragment/line comment, above the code it describes
+- `;` — margin/inline comment (end of line)
+
+### 15.2 Content rules — 🟡 MEDIUM
+- Always at least one space after the semicolons.
+- Complete sentences, capitalized, punctuated.
+- No superfluous comments: `(inc x) ; increments x by 1` is noise.
+- Keep comments up-to-date — outdated comments are worse than none.
+
+### 15.3 Commenting out code — 🔵 LOW
+- Prefer `#_(form)` reader macro over `;; (form)`:
+```clojure
+(+ foo #_(bar x) delta)              ; ✅
+```
+
+### 15.4 Annotations — 🔵 LOW
+Place above the code, include a colon + space + note. Sign with initials + date.
+
+| Tag | Meaning |
+|---|---|
+| `TODO:` | missing feature to add |
+| `FIXME:` | broken code needing fix |
+| `OPTIMIZE:` | slow / inefficient |
+| `HACK:` | questionable practice, refactor later |
+| `REVIEW:` | confirm this works as intended |
+
+```clojure
+(defn handle []
+  ;; FIXME: Crashes intermittently since v1.2.3. May be related
+  ;;        to BarBazUtil upgrade. (uj 26-04-21)
+  (baz))
+```
+
+---
+
+## 16. Documentation (Docstrings)
+
+### 16.1 Prefer docstrings over `:doc` metadata — 🟠 HIGH
+```clojure
+(defn foo "Does a thing." [] ...)             ; ✅
+(defn foo ^{:doc "Does a thing."} [] ...)     ; ❌
+```
+
+### 16.2 First sentence = concise summary — 🟡 MEDIUM
+- Tooling (CIDER, Cursive, cljdoc) shows only the first line in tooltips.
+```clojure
+(defn frobnitz
+  "Computes the frobnitz of `coll`.
+  Additional paragraphs go after the summary line and describe
+  details, options, edge cases."
+  [coll] ...)
+```
+
+### 16.3 Leverage Markdown — 🔵 LOW
+- cljdoc renders Markdown: tables, code fences, links.
+
+### 16.4 Backtick positional args — 🟡 MEDIUM
+```clojure
+(defn watsitz
+  "Converts `frob` to a znoot. If `frob` is negative the znoot is angry."
+  [frob] ...)                                 ; ✅
+```
+
+### 16.5 Reference other vars with `` ` `` or `[[..]]` — 🔵 LOW
+- `` `clojure.core/identity` `` for a name reference
+- `[[kangaroo]]` for a link (cljdoc / Codox)
+
+### 16.6 Indentation & whitespace — 🔵 LOW
+- Indent continuation lines by 2 spaces.
+- No leading/trailing whitespace inside the docstring.
+
+### 16.7 Protocol method docstrings — 🟡 MEDIUM
+- Place **after** the arg vector (different from `defn`):
+```clojure
+(defprotocol MyProtocol
+  "Protocol docstring."
+  (foo [this x]
+    "Method docstring after the argv."))
+```
+
+---
+
+## 17. Testing
+
+### 17.1 Directory structure — 🟡 MEDIUM
+- Tests live in `test/yourproject/...`, mirroring `src/yourproject/...`.
+
+### 17.2 Namespace naming — 🟠 HIGH
+- `yourproject.something-test` → file `test/yourproject/something_test.clj` (or `.cljc` / `.cljs`).
+
+### 17.3 Test fn naming — 🟠 HIGH
+- `deftest something-test` — singular `-test` suffix.
+```clojure
+(deftest something-test ...)         ; ✅
+(deftest something-tests ...)        ; ❌ plural
+(deftest test-something ...)         ; ❌ prefix
+(deftest something ...)              ; ❌ missing suffix
+```
+
+### 17.4 Structure: `deftest` + `testing` — 🟡 MEDIUM
+- One `deftest` per behavior group.
+- `testing` blocks describe each scenario in plain English.
+
+```clojure
+(deftest valid-user?-test
+  (testing "returns true for active + verified"
+    (is (true? (valid-user? {:status :active :email-verified? true}))))
+  (testing "returns false when email unverified"
+    (is (false? (valid-user? {:status :active :email-verified? false})))))
+```
+
+### 17.5 Use `constantly` for fixed-return mocks — 🟡 MEDIUM
+```clojure
+(deftest test-some-function
+  (testing "returns expected response"
+    (bond/with-local-stub [[ma/create-user (constantly {:id "hsft_user_1"})]]
+      (is (= {:status :ok}
+             (hwi/some-function {:did "did"
+                                 :identities [{:uid "hsft_user_1"}
+                                              {:email "user12@gmail.com"}]}))))))
+```
+- `constantly` returns a fn of any arity that always returns the given value — ideal for stubs where arg count/value doesn't matter.
+
+### 17.6 Use predicate assertions — 🟠 HIGH
+- `nil?`, `true?`, `false?` are more accurate than `(= nil ...)` / `(= true ...)` (truthy ≠ `true`).
+```clojure
+(is (true?  (do-task req)))              ; ✅
+(is (false? (do-task req)))              ; ✅
+(is (nil?   (do-task req)))              ; ✅
+
+(is (= true  (do-task req)))             ; ❌
+(is (= false (do-task req)))             ; ❌
+(is (= nil   (do-task req)))             ; ❌
+```
+
+---
+
+## 18. Library Organization
+
+### 18.1 Coordinates — 🔵 LOW
+- Central Repository groupId conventions: reverse-DNS (`com.example/foo`) or org/project (`nrepl/nrepl`).
+
+### 18.2 Minimize dependencies — 🟡 MEDIUM
+- A three-line utility copied in-project is better than pulling a library with hundreds of unused vars.
+
+### 18.3 Tool-agnostic core — 🔵 LOW
+- Ship core functionality separate from tooling integration.
+
+---
+
+## 19. Cross‑File Allow‑Set / Registry Contracts (`:pre`-gated sets) — 🔴 CRITICAL
+
+This is a recurring, high‑cost bug class in Helpshift Clojure code. Bhishma MUST explicitly check this on every PR that touches feature flags, dispatch values, enum‑like string/keyword literals, or anything that reads "type tags".
+
+### What the pattern looks like
+
+Somewhere in the codebase there is a `^:const` (or plain `def`) set that acts as an **allow‑list**:
+
+```clojure
+;; models/<thing>.clj
+(def ^:const supported-features
+  #{"feature_a" "feature_b" "feature_c"})
+```
+
+In a different namespace, a gateway `defn` has a `:pre` (or `s/assert`, or runtime guard) that consults the set:
+
+```clojure
+;; handlers/<thing>.clj
+(defn toggle-sitemeta-feature
+  [{:keys [feature status] :as feature-info}]
+  {:pre [(instance? Boolean status)
+         (mcmsitemeta/supported-features feature)]}   ; ← the gate
+  ...)
+```
+
+Callers hand that gateway a plain string literal (often in a `defmethod`, a job, a migrator, or a kafka consumer):
+
+```clojure
+;; jobs/.../feature_toggle.clj
+(defmethod toggle-feature :chatbot-step-min-timeout
+  [params]
+  ...
+  (mchs/toggle-sitemeta-feature {:ctx ctx
+                                 :status new-status
+                                 :feature "chatbot_step_min_timeout"  ; ← the literal
+                                 ...}))
+```
+
+The bug: the author adds the new `defmethod` + the new feature string literal but forgets to add the literal to the allow‑set. The diff looks symmetric with existing siblings, tests are green (usually because the wrong branch is tested), and the break happens **only at runtime in prod** as `AssertionError: Assert failed: (<set> feature)`.
+
+### Why review misses it
+
+1. The invariant lives in a file *not touched by the PR*, so the reviewer never opens it.
+2. The link is dynamic (string → set lookup). There is no compile‑time or `clj-kondo` check.
+3. Tests typically exercise the "list everything" or "dispatch" branch, not the gateway that trips the `:pre`.
+4. `defmethod` siblings visually look correct because the old siblings were registered years ago.
+
+### Bhishma MUST perform this check when
+
+Any of the following appears in the diff:
+
+- A new `defmethod <multi>` whose body calls into another namespace.
+- A new entry added to a lookup map / set that names features, types, kinds, roles, capabilities, events.
+- A new string or keyword literal being passed into a function whose call chain is NOT visible in the diff (e.g., `(mchs/toggle-... {:feature "..."})`).
+- Any map literal with a `:feature`, `:type`, `:kind`, `:event`, `:action`, `:op`, `:channel`, `:permission`, `:role`, `:capability`, `:event-type`, or similar "tag" key.
+
+### Procedure (mandatory — do not skip)
+
+1. **Identify the literal.** Extract every new string/keyword literal passed as a "tag" key (`:feature`, `:type`, `:kind`, `:event`, …).
+2. **Walk the callee.** Open the target `defn` one hop away. Look for `:pre`, `s/valid?`, `s/assert`, `assert`, explicit `throw`, or any `contains?` / set‑as‑fn check that consults a named set/map.
+3. **Diff against the allow‑set.** `rg "\"<literal>\"" <allow-set-file>` — if it's not there, **block the PR with a 🔴 finding**.
+4. **Check both the write side AND the read side.** Many registries have twin sets — e.g., one for "allowed to toggle" and one for "visible in listing". Both may need updating.
+5. **Check tests.** The diff must include a positive test that actually invokes the gateway with the new literal, not just the listing/dispatch branch. Missing = 🟠 HIGH finding even if (3) is OK, because the next regression will hide the same way.
+
+### Bhishma output template for this finding
+
+```
+🔴 CRITICAL — Cross‑file allow‑set contract violation
+
+Diff adds:
+  <file>:<line>  :feature "<new_literal>"
+
+Consumed by:
+  <handler-file>:<line>  (defn <gateway> ... {:pre [(<allow-set> feature)]})
+
+Allow‑set at:
+  <models-file>:<line>  (def ^:const <allow-set> #{...})
+
+"<new_literal>" is NOT in <allow-set>. The gateway's :pre will throw
+AssertionError at runtime on the first invocation.
+
+Required change:
+  Add "<new_literal>" to <models-file>:<line>.
+
+Missing test:
+  No test invokes (<gateway> {:feature "<new_literal>" ...}). Add one
+  positive enable + disable test so this class of miss fails in CI.
+```
+
+### Things that are NOT this pattern (avoid false positives)
+
+- Direct `mcc/update`, `mcmudsd/update`, raw Mongo `$set` paths — these bypass the gateway and do not need registration.
+- Gateways without a `:pre` allow‑set (e.g., `toggle-sitemeta-feature-status`, which just writes `{(keyword ...) status}` with no guard).
+- String literals used only for logging, metrics keys, or audit‑trail events.
+
+### Repo‑specific registries
+
+When reviewing, consult the workspace rule for the concrete allow‑sets in that repo:
+
+- `<repo>/.cursor/rules/*-feature-flag-registry.mdc` — pins exact allow‑set locations and call sites.
+- If the workspace rule does not exist, scan the repo for `{:pre \[.*supported|allowed|valid.*\]}` / `(def .*supported-|-allow-set|-registry)` to discover the invariant before reviewing.
+
+---
+
+## Bhishma Review Checklist (Clojure diffs)
+
+When reviewing a Clojure diff, surface findings in this priority order (issues-only — skip clean files/hunks):
+
+1. **Safety & correctness (🔴/🟠)**
+   - **Cross‑file allow‑set contract miss** (🔴) — new feature/type/event string or keyword added in one ns without being registered in the `:pre`-gated allow‑set in the sibling ns. See §19 for the mandatory procedure and repo registries. This is the single highest‑cost miss class in Helpshift code and MUST be explicitly checked on every diff that touches a feature flag, dispatch key, or map `:feature`/`:type`/`:event`/`:kind` literal.
+   - Missing `!` on side-effecting fn
+   - Missing `?` on predicate fn
+   - Wrong threading macro (`->` vs `->>`)
+   - Atom updates inside STM transactions
+   - `send` used for blocking work (should be `send-off`)
+   - Private vars/fns exposed as public
+
+2. **Idiomatic replacements (🟠)**
+   - Manual `loop`/`recur` replaceable by `map`/`filter`/`reduce`
+   - `(if pred (do ...))` → `when`
+   - `(let [r ...] (if r ...))` → `if-let` / `when-let`
+   - `(if (not x))` → `if-not`
+   - `(not (= a b))` → `not=`
+   - Java interop when `clojure.string` / `clojure.math` exists
+   - `(m :key)` → `(:key m)`
+   - Unnecessary `#()` wrapping an existing fn
+
+3. **Naming (🟡)**
+   - Not `kebab-case`
+   - `get-` / `is-` / `has-` / `can-` prefixes
+   - Missing earmuffs on dynamic vars
+   - Protocol/record not `CapitalCase`
+
+4. **Structure (🟡)**
+   - ns form missing sort / one-per-line
+   - Non-idiomatic namespace alias
+   - Function > 10 LOC
+   - > 4 positional params
+   - Redundant `let` bindings
+   - Docstring in wrong position
+
+5. **Tests (🟠/🟡)**
+   - Namespace not suffixed `-test`
+   - `deftest` name not suffixed `-test`
+   - `(= nil ...)` / `(= true ...)` instead of `nil?` / `true?`
+   - Missing `testing` descriptions
+
+6. **Documentation (🟡)**
+   - Missing docstring on public fn
+   - Docstring not starting with concise summary sentence
+   - Arg names in docstring not backticked
+
+7. **Layout (🔵)**
+   - Wrong indentation (body vs args)
+   - Tabs instead of spaces
+   - Trailing whitespace
+   - Hanging closing parens
+
+Report findings in Bhishma's standard issue format (severity + problem + recommended fix). Do **not** list files or hunks with no issues.

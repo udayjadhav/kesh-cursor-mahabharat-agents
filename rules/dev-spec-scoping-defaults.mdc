@@ -1,0 +1,154 @@
+---
+description: Every dev spec's Scoping / Estimation section MUST include the 6 default lifecycle tasks (Dev Spec review, Code review, Sandbox, Dev Testing, CM, Release). Convention sourced from Helpshift practice.
+globs: **/*.md, **/specs/**, **/docs/**
+version: 1.2.0
+alwaysApply: false
+---
+
+# Dev Spec Scoping Defaults
+
+Every dev spec's `Scoping / Estimation` section (or equivalent — "Estimation", "Effort", "Task Breakdown", "Implementation Plan") MUST include these 6 default lifecycle tasks at minimum, in addition to per-feature engineering tasks.
+
+Source convention: [Impact Analysis: Reducing Chatbot Step Timeout Below 30 Seconds — Scoping & Estimation](https://helpshift.atlassian.net/wiki/spaces/~7120200341ef509b9f4a98a1d91e685c61dcab/pages/6057492974/Impact+Analysis+Reducing+Chatbot+Step+Timeout+Below+30+Seconds#Scoping-and-Estimation%3A) — established Helpshift practice for spec-shaped docs.
+
+## When this applies
+
+This rule applies whenever a doc qualifies as a "spec-shaped" deliverable. Spec context detectable by any of:
+
+- Filename matches: `*-spec*.md`, `*spec*.mdc`, `dev-spec-*.md`, files under `specs/` or `docs/specs/`.
+- Heading anywhere on the page: `Scoping`, `Estimation`, `Effort`, `Task Breakdown`, `Implementation Plan`, `Phases`, `Timeline`, `Tasks`.
+- Confluence page in spaces `ENTP`, `PMS`, `PLAT`, `FTY`, `SE`, `OPS` matching titles like "Dev Spec", "Design Doc", "Impact Analysis", "Architecture Review".
+- Document with sections matching: "Goals & Non-Goals", "Proposed Design", "Schema Deltas", "Code Changes", "Risks", "Rollout & Rollback", "Open Questions".
+- Branch / PR titled `feature/*` with attached design doc.
+
+If the doc is purely a runbook, RCA, post-mortem, or one-line config tweak (e.g., bumping a constant), this rule does not apply (separate scoping conventions for those).
+
+## Minimum tasks (MUST appear)
+
+Every qualifying spec's Scoping section MUST list these six tasks with at least the default estimates. Total floor = 6 days.
+
+| # | Task | Default estimate | Notes |
+|---|---|---|---|
+| L1 | Dev Spec review and address comments | 1 day | Engineering-team review pass on the spec itself before code-cut. BE-lead + FE-lead + relevant peers + reviewers from adjacent owning teams. |
+| L2 | Code review and addressing review comments | 2 days | Per-PR review across the implementation set. Multiplier on review turn-around. Includes Bhishma / clojure-review / per-team conventions. |
+| L3 | Sandbox | 1 day | Stand up the change in sandbox env, verify deploy, run smoke. |
+| L4 | Dev Testing | 1 day | Engineer-driven testing on sandbox, pre-QA-handoff. |
+| L5 | CM creation and approval | 0.5 day | Change-Management ticket with per-region approvals (US, EU, CN) where applicable. |
+| L6 | Release | 0.5 day | Production cut, bake, sign-off. |
+
+**Default total: 6 days.** This is a floor, not a target. For larger / more complex specs, scale L2 (code review) and L4 (dev testing) up; the others are nearly always close to the default.
+
+## Splitting by team / lane
+
+When the spec spans multiple teams, split the Scoping section into team lanes:
+
+- **§N.1 Backend tasks** — BE engineering, BE QA, DevOps tasks
+- **§N.2 Frontend tasks** — FE engineering, FE QA tasks
+- **§N.3 Default lifecycle tasks** — the 6 above (BE primary owner; FE participates in L1 + L4)
+- **§N.4 Customer comms / helpcenter** (if customer-facing) — Product + CSM tasks
+- **§N.5 Totals & buffer** — single roll-up table
+
+Cross-team tasks (e.g., "implement link API + UI") either appear in BOTH sub-tables (with a shared task ID) OR get split into "BE-Xa (API)" + "FE-Xa (UI integration)".
+
+Example skeleton:
+
+```markdown
+## N. Scoping & Estimation
+
+### N.1 Backend tasks (Eng-BE, QA-BE, DevOps)
+
+| # | Task | Owner | Status | Est (days) |
+| --- | --- | --- | --- | --- |
+| BE-1 | … | Eng-BE | pending | … |
+
+### N.2 Frontend tasks (Eng-FE, QA-FE)
+
+| # | Task | Owner | Status | Est (days) |
+| --- | --- | --- | --- | --- |
+| FE-1 | … | Eng-FE | pending | … |
+
+### N.3 Default lifecycle tasks
+
+| # | Task | Owner | Status | Est (days) |
+| --- | --- | --- | --- | --- |
+| L1 | Dev Spec review and address comments | BE-lead + FE-lead + reviewers | pending | 1.0 |
+| L2 | Code review and addressing review comments | BE + FE | pending | 2.0 |
+| L3 | Sandbox | BE + DevOps | pending | 1.0 |
+| L4 | Dev Testing on sandbox | BE + FE | pending | 1.0 |
+| L5 | CM creation and approval | DevOps | pending | 0.5 |
+| L6 | Release | DevOps + BE | pending | 0.5 |
+| **Lifecycle subtotal** | | | | **6.0** |
+
+### N.5 Totals & buffer
+
+| Lane | Days |
+| --- | --- |
+| Backend | … |
+| Frontend | … |
+| Default lifecycle | 6.0 |
+| Buffer (≈ 10–20 % of engineering total) | … |
+| **Total** | **…** |
+```
+
+## Optional additions (consider, document if applicable)
+
+- **Canary phase** — multi-stage rollout (1 % → 10 % → 50 % → 100 %) with bake-gate days.
+- **Customer comms drafting** — Helpcenter article, in-product banner, CSM playbook, migration FAQ.
+- **Helpcenter publish + translation** — multi-region (CN-Mandarin, EU locales).
+- **Post-mortem** — for SEV-1 / SEV-2-prone changes.
+- **Buffer** — explicit slack budget. 10–20 % of the engineering total is typical.
+- **Dashboard / metrics setup** — Datadog dashboards, alarm definitions, cardinality budget.
+- **Rollback drill** — automated SLA assertion test.
+- **DB migrators / index builds** — pre-build dup audits, background-build spec, observability hooks.
+- **Feature-flag Twin-set registration** (Helpshift-specific) — per `.cursor/rules/moby-feature-flag-registry.mdc`.
+
+## Tiny-spec exception
+
+If the change is genuinely a 1-line behaviour change with no schema, no FE, no rollout phasing (e.g., bumping a timeout constant) AND the engineering estimate is < 0.5 day, the lifecycle tasks may be collapsed into a single "L: spec review + code review + CM + release (combined)" line of 1–2 days total. The collapse MUST be explicit ("collapsed lifecycle"), not implicit.
+
+For anything larger, all six tasks must be itemised.
+
+## Inline narration banned
+
+The Scoping section MUST NOT include any inline meta-narrative justifying WHY the lifecycle tasks are present. Phrases like:
+
+- "These six tasks apply to every dev spec at Helpshift and are budgeted explicitly here…"
+- "BE owns the lifecycle by default; FE participates in L1 and L4…"
+- "Source convention: <link>…"
+- Any sentence beginning with "These tasks…" / "This section…" / "We budget these because…"
+
+…are **disallowed** in the spec body. The rule itself is the source convention; the spec just lists the six tasks. A real engineer doesn't justify a scoping section — they list it. This is the same constraint enforced by `dev-spec-authorship-voice.mdc`.
+
+**✅ Correct — bare default lifecycle table (no preamble, no justification sentences):**
+
+| # | Task | Owner | Status | Est (days) |
+| --- | --- | --- | --- | --- |
+| L1 | Dev Spec review and address comments | BE-lead + FE-lead + reviewers | pending | 1.0 |
+| L2 | Code review and addressing review comments | BE + FE | pending | 2.0 |
+| L3 | Sandbox | BE + DevOps | pending | 1.0 |
+| L4 | Dev Testing on sandbox | BE + FE | pending | 1.0 |
+| L5 | CM creation and approval | DevOps | pending | 0.5 |
+| L6 | Release | DevOps + BE | pending | 0.5 |
+
+**Self-check (ripgrep, run before publish):**
+
+```bash
+rg -n "These six tasks apply to every dev spec|Source convention: \[Impact Analysis" /path/to/spec.md
+# expected: 0 matches
+```
+
+If the spec needs to flag a deviation from the defaults (e.g., L2=4 days because of a multi-region migration), put the justification **inline next to the deviating row** ("L2 = 4 days — multi-region migration with ≥ 5 PRs") — never as a section preamble.
+
+## How to comply
+
+When authoring or reviewing a dev spec:
+
+1. Identify the Scoping section (or add one if absent).
+2. Verify the 6 lifecycle tasks (L1–L6) are present with at least the default estimates.
+3. If any are missing, add them. If the spec proposes a different estimate for one of them, justify it inline (e.g., "L2 = 4 days — multi-region migration with ≥ 5 PRs to review").
+4. If the spec spans multiple teams, split into BE / FE / lifecycle / comms / totals lanes per the skeleton above.
+5. Add the Buffer line at 10–20 % of the engineering total — not optional once the spec exceeds 5 engineering days.
+
+## Why this rule exists
+
+These six tasks are routinely under-counted at sizing time and cause the same slip in every spec — review takes longer than expected, sandbox surfaces issues that delay dev testing, CM approvals clear slowly. Pre-budgeting them keeps spec timelines honest and prevents the "we'll figure it out at code-cut" pattern that turns 3-week specs into 6-week ones.

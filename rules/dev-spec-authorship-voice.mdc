@@ -1,0 +1,132 @@
+---
+description: Dev specs / RFCs / design docs / runbooks are written in the engineer-author's voice — no assistant self-attribution, no meta-narrative about the writing process.
+globs: **/*.md, **/*.mdc, **/scratch/**, **/specs/**, **/docs/**
+version: 1.0.0
+alwaysApply: true
+---
+
+# Dev Spec Authorship Voice
+
+All dev specs, design docs, RFCs, architecture docs, planning docs, runbooks, and any prose destined for a reviewer-facing surface (Confluence, Jira, Notion, README, helpcenter, customer comms) MUST be written in the engineer-author's voice. The reader is a peer reviewer, not a participant in the authoring conversation.
+
+## When this applies
+
+- Confluence dev specs / design docs / RFCs / architecture pages
+- Jira ticket descriptions and comments meant for the team
+- `docs/` and `specs/` markdown files committed to a repo
+- Runbooks, post-mortems, RCAs, impact analyses
+- Helpcenter articles, release notes, customer-facing comms
+- Pull-request descriptions
+- `scratch/`, `notes/` files that are intended to be promoted to one of the above
+
+NOT scoped to:
+
+- Git commit messages (separate convention).
+- AI assistant chat transcripts (those are conversations).
+- This file and other `.mdc` rule files (rules can describe themselves).
+
+## Banned typographic shortcuts (severity 🔴 — must be 0 in published body)
+
+These symbols are jargon shortcuts that obscure intent for a reviewer skimming the body. Use descriptive English text instead.
+
+| Banned | Use instead | Example before → after |
+| --- | --- | --- |
+| `§` (section sign) | `Section N` for top-level; `Section N.M` for sub-sections (no separate "subsection" word — keep one consistent token) | `see §13.2.1` → `see Section 13.2.1` · `(§14 C5)` → `(Section 14, C5)` · `§"Shortcuts that BYPASS"` → `Section "Shortcuts that BYPASS"` |
+| `¶` (pilcrow / paragraph mark) | `paragraph N` or quote the heading | `¶3` → `paragraph 3` |
+| `№` (numero) | `number` or `#` (in informal contexts) | `№4` → `number 4` |
+| `cf.` (compare) | `compare with` or `see also` | `cf. §5` → `compare with Section 5` |
+| `i.e.` / `e.g.` / `etc.` | Acceptable in spec body, but prefer expansion (`that is`, `for example`, `and so on`) when a non-native-English reviewer is in the audience. Not banned. | — |
+| Bare numeric refs to other sections without a label (e.g., "see 13.2") | Always prefix with `Section` so a Confluence reader who breaks the page into sub-pages can still resolve the reference | `see 13.2` → `see Section 13.2` |
+
+The `§` ban applies regardless of indentation, code-fence proximity, or table cells. The only exception is verbatim quotation of an external standard that itself uses `§` (e.g., quoting a legal statute) — wrap the quote in backticks or a blockquote so it reads as a quotation, not as the spec's own voice.
+
+### Self-check (run before publishing)
+
+```bash
+rg -n "§|¶|№|\bcf\.\s" <file>
+```
+
+Any hit is a regression — replace with the descriptive equivalent.
+
+### Why this rule exists
+
+`§` is a typesetting convention from print law / academic publishing. Reviewers on Confluence, GitHub, Jira, and Slack don't read specs that way. Spelling out `Section 13.2.1` adds three characters and removes one cognitive hop. It also survives copy-paste into Slack threads (where `§` sometimes renders as a placeholder glyph in older clients) and into dashboards (where Markdown rendering of obscure Unicode is inconsistent).
+
+## Banned phrasings (severity 🔴 — must be 0 in published body)
+
+These phrases (and close variants) MUST NOT appear in the body of any spec / design / RFC / runbook:
+
+- "first draft proposed", "the previous version proposed"
+- "on review", "after re-evaluating", "after iteration", "after the round of feedback"
+- "we considered with the user", "the user pushed back", "the user asked for", "user pushed back"
+- "we agree", "we now agree", "we decided after debate"
+- "let me know", "happy to clarify", "happy to dig deeper", "feel free to push back"
+- "as discussed", "per our chat", "per the conversation"
+- "the assistant suggested", "Cursor suggested", "AI suggested"
+- "is this all needed, remove" and similar literal user-directive copy that escaped into the body
+- Anything that narrates a clarification round between the author and a reviewer / assistant
+
+## DO
+
+- Write decisions as the engineer-author's own decisions: "Issue carries `supportchannel_id`. Mapping table stays admin-config-shaped." NOT "We decided to put `supportchannel_id` on Issue after the user pushed back on per-issue mapping rows."
+- Justify with rationale that stands on its own merits: "Issue is the highest-volume entity; per-issue writes into a shared admin-config table treat operational data as if it were configuration." NOT "We agreed this was the wrong shape after re-evaluating the tradeoffs."
+- Use first-person plural "we" only when referring to the engineering team / the company, never when referring to the author and an external reviewer / assistant. When in doubt, switch to passive or third-person.
+- Prefer direct active voice. "X writes Y when Z." NOT "X is going to write Y based on what we agreed."
+- When an architectural decision was reached after debate, document the decision + the alternatives that were rejected, with the rationale for each. Don't chronicle who said what.
+
+## DON'T
+
+- Don't reference the writing process. "This section was rewritten after the architectural review" is meta-noise — the page version log already captures that.
+- Don't use "the user" to mean the reviewer / customer / assistant.
+- Don't leave conversational asides ("for what it's worth", "btw", "fwiw", "tldr").
+- Don't include user directives or quotes from the conversation as content (e.g., `is this all needed, remove` — that was a directive, not part of the spec).
+- Don't sign meta-commentary into the body ("written by Cursor and reviewed by ...").
+- Don't reference AI iteration rounds, agent flows, or orchestration meta in the body. The body is the artifact; the process is invisible to the reader.
+
+## Examples
+
+❌ Bad:
+
+```markdown
+## 8. Storage Trade-off and Decision
+
+The first draft of this spec proposed writing one mapping row per email-issue creation. On review, that approach treats the mapping table as if it were operational data. The user pushed back on this explicitly, and after re-evaluating the tradeoffs we agree.
+```
+
+✅ Good:
+
+```markdown
+## 8. Storage Trade-off and Decision
+
+Issues are the highest-volume entity in the product. Any storage choice that materializes per-issue has to be evaluated against that volume. Per-issue writes into `workzones_entity_mapping` would treat a shared admin-config table as operational storage — at message volume rather than admin-action volume — and the table is sized for the latter, not the former.
+```
+
+❌ Bad:
+
+```markdown
+We decided to add `supportchannel_id` to the Issue defspec after considering four options with the user. We agreed this is the right approach.
+```
+
+✅ Good:
+
+```markdown
+Issue carries `supportchannel_id`. Three alternatives (per-issue mapping rows; `workzone_id` directly on Issue; hybrid sch+wz columns) were rejected — per-issue mapping rows for shape mismatch, schema-first migration for ES re-index cost, hybrid for redundancy.
+```
+
+## Self-check before publishing
+
+Before writing or updating any spec / design / RFC / runbook to a reviewer-facing surface, ripgrep the body for the banned phrasings AND banned typographic shortcuts above:
+
+```bash
+# Phrasings
+rg -i "first draft|pushed back|re-evaluating|we considered|after iteration|on review|we agree|let me know|happy to clarify|as discussed|per our chat|the assistant" <file>
+
+# Typographic shortcuts
+rg -n "§|¶|№|\bcf\.\s" <file>
+```
+
+Any hit is a regression — fix the wording before publishing. The check is mechanical and takes seconds; skipping it is the most common failure mode.
+
+## Why this rule exists
+
+Specs are reviewer artifacts, not transcripts. A reviewer trying to understand a decision should not have to parse who-said-what between the author and an AI assistant. The decision and its justification stand on their own; the iteration history belongs in the version log, not in the body.

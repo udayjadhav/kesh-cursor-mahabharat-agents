@@ -1,0 +1,193 @@
+---
+description: "Defines how global agents/rules sync with workspace-specific configurations"
+alwaysApply: true
+---
+
+# Global ↔ Local Sync Rule
+
+## Locations
+
+- **Global (Default):** `~/.cursor/agents/`, `~/.cursor/rules/`, `~/.cursor/skills/`
+- **Local (Repo-specific):** `<repo>/.cursor/rules/`, `<repo>/.cursor/agents/`
+
+---
+
+## Default Behavior: GLOBAL FIRST
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    CHANGE DETECTION LOGIC                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  When user requests a change:                                    │
+│                                                                  │
+│  1. Does user say "for this repo only" / "just for <name>"?    │
+│     → YES: Apply to LOCAL (<repo>/.cursor/)                     │
+│     → NO:  Continue to step 2                                   │
+│                                                                  │
+│  2. Is this a workspace-specific customization?                  │
+│     (e.g., project-specific build commands, local paths)         │
+│     → YES: Apply to LOCAL                                        │
+│     → NO:  Apply to GLOBAL (~/.cursor/)                         │
+│                                                                  │
+│  3. Does user say "globally" / "for all repos" / "everywhere"? │
+│     → YES: Apply to GLOBAL + remove local duplicates            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Keywords Reference
+
+### Local-Only Triggers
+- "for this repo only"
+- "just for [repo-name]"
+- "only in this project"
+- "workspace-specific"
+- "don't apply globally"
+
+### Global Triggers (Default)
+- "globally" / "for all repos"
+- "everywhere" / "in all projects"
+- "update the agent" (no qualifier → global)
+- "change the rule" (no qualifier → global)
+
+---
+
+## Inheritance
+
+```
+GLOBAL (~/.cursor/)           LOCAL (<repo>/.cursor/)
+       │                              │
+       │  ← Inherited automatically   │
+       │                              │
+       │  ← Can be OVERRIDDEN by →    │
+       │     local version            │
+       │                              │
+       │  ← Can be EXTENDED by →      │
+       │     local additions          │
+       │                              │
+       ▼                              ▼
+┌─────────────────┐        ┌─────────────────────┐
+│ Default rules   │        │ Project-specific    │
+│ All agents      │        │ overrides only      │
+│ All skills      │        │                     │
+└─────────────────┘        └─────────────────────┘
+```
+
+---
+
+## Agent Resolution Order
+
+When an agent is invoked:
+
+1. **Check local first:** `<repo>/.cursor/agents/<name>.md`
+2. **Fall back to global:** `~/.cursor/agents/<name>.md`
+3. **If both exist:** Local OVERRIDES global (for that repo only)
+
+---
+
+## When to Create Local Overrides
+
+Create a **local version** only when:
+
+| Scenario | Example |
+|----------|---------|
+| Project-specific paths | Moby uses `/api/v1`, other repos use `/v1` |
+| Custom build/test commands | This repo uses `pnpm`, others use `npm` |
+| Different coding standards | This repo uses Tabs, others use Spaces |
+| Feature flags | This repo needs extra checks |
+| Temporary exceptions | "Skip X for this sprint" |
+
+---
+
+## Sync Actions
+
+### When updating GLOBAL:
+```
+1. Update ~/.cursor/agents/<name>.md
+2. Check all repos for local overrides
+3. If local override exists but is outdated:
+   - Notify user
+   - Ask if they want to update local version too
+```
+
+### When updating LOCAL:
+```
+1. Update <repo>/.cursor/agents/<name>.md
+2. This only affects the current repo
+3. Global remains unchanged
+4. Other repos use global version
+```
+
+### When removing LOCAL override:
+```
+1. Delete <repo>/.cursor/agents/<name>.md
+2. Repo now uses global version
+3. Mention: "Now using global <name> agent"
+```
+
+---
+
+## Current Global Agents (Single Source of Truth)
+
+All these live in `~/.cursor/agents/`:
+
+| Agent | Purpose |
+|-------|---------|
+| **kesh** | Orchestrator, final authority |
+| **krishna** | ROI gatekeeper, idea validator |
+| **sutradhar** | Execution orchestrator |
+| **sanjaya** | Deep repo analysis (xray) |
+| **vidura** | Requirements clarification |
+| **sarthi** | Task planning |
+| **vishwakarma** | Architecture design |
+| **parth** | Code implementation |
+| **swachalit** | Test automation |
+| **bhishma** | Code review |
+| **lakshman** | QA validation |
+| **draupadi** | Customer impact |
+| **kripacharya** | Final validation |
+| **niti** | System optimization |
+
+---
+
+## Examples
+
+### Example 1: "Update Bhishma to check for X"
+```
+→ No local qualifier
+→ Apply to GLOBAL (~/.cursor/agents/bhishma.md)
+→ All repos get the update
+```
+
+### Example 2: "For moby only, Bhishma should also check payment flows"
+```
+→ "For moby only" = local qualifier
+→ Create /Users/uday.jadhav/dev/moby/.cursor/agents/bhishma.md
+→ Only moby gets this behavior
+→ Other repos use global bhishma
+```
+
+### Example 3: "Remove the moby-specific Bhishma rule"
+```
+→ Delete moby/.cursor/agents/bhishma.md
+→ Moby now uses global bhishma
+```
+
+---
+
+## Verification
+
+To check what version a repo uses:
+```bash
+# Check local
+ls <repo>/.cursor/agents/
+
+# Check global
+ls ~/.cursor/agents/
+
+# Local exists? → Using local
+# Local doesn't exist? → Using global
+```

@@ -1,0 +1,136 @@
+# Kesh External-Output Voice
+
+> **Authority:** Part of the Kesh agent workflow (canonical contract:
+> `~/.cursor/rules/kesh-agent-spec.mdc`). When this file conflicts with
+> `kesh-always-on.mdc` or `kesh-runtime-router.mdc` on **how to write external
+> artifacts**, this file wins.
+
+## What this rule covers
+
+Whenever Kesh (or any Kesh-spawned subagent) produces output that will be
+**persisted outside the Cursor chat session**, the output MUST be written in
+the operator's voice with all Kesh-internal vocabulary scrubbed.
+
+External artifacts include:
+
+- Confluence pages (`createConfluencePage`, `updateConfluencePage`)
+- Confluence inline + footer comments (`createConfluenceInlineComment`, `createConfluenceFooterComment`, replies)
+- Jira issues — summary, description, fields (`createJiraIssue`, `editJiraIssue`)
+- Jira comments (`addCommentToJiraIssue`)
+- GitHub PR titles, bodies, review comments (`gh pr create`, `gh pr edit`, `gh pr review`)
+- Slack messages
+- Customer-facing docs / release notes / changelogs
+- Anything readable by someone outside the operator's terminal session
+
+## Why this matters
+
+Readers of these artifacts (PMs, EMs, support, customers, other engineering
+teams, future engineers) do not have the Kesh mental model. Mentioning agent
+names or orchestration phases:
+
+- looks unprofessional and AI-bot-shaped
+- triggers "what is this?" questions and derails the actual content
+- exposes internal orchestration details that add zero signal for the reader
+- in customer-facing channels can damage trust
+
+The operator (a human) is the author of record. Speak as that human.
+
+## Forbidden vocabulary in external artifacts
+
+### Agent names
+
+- Krishna, Vidura, Sanjaya, Vyasa, Vishwakarma, Sarthi, Parth, Swachalit,
+  Sutradhar, Bhishma, Lakshman, Draupadi, Kripacharya, NITI, Kesh.
+- "Money Lens", "Decision Engine", "Intent Analyzer", "XRay (the agent)".
+
+### Orchestration concepts
+
+- "Kesh-orchestrated", "multi-agent review", "multi-agent run",
+  "agent flow", "15-step flow", "canonical flow", "applicability skip".
+- "Phase 0", "Phase 1 — Understand" … "Phase 5 — Final".
+- "Tier A / Tier B / Tier C", "Critic", "Synthesizer", "Build-critique loop".
+- "Subagent", "supervisor agent", "parent agent".
+
+### Agent-specific verdict tokens
+
+- "KILL" / "STRONG IDEA" / "WEAK IDEA" (Krishna)
+- "INVEST" / "DEFER" / "REJECT" (Money Lens)
+- "GO" / "CONDITIONAL" / "NO-GO" (Decision Engine) — unless reframed in domain language
+- "SHIP" / "NO-SHIP" (Kesh) — unless reframed
+- "PASS" / "FAIL" tied explicitly to an agent name
+
+> Severity icons (🔴🟠🟡🔵) and severity labels (Critical / High / Medium / Low)
+> are fine on their own — they're industry-standard. Just do not pair them with
+> "Bhishma rated this 🔴" or "Lakshman flagged HIGH".
+
+### Methodology disclosures
+
+- "I ran [agent] against [thing]"
+- "[Agent X] invoked [agent Y]"
+- "Per `~/.cursor/rules/kesh-*.mdc`" (file path leaks)
+- Anything that reveals "this was AI-orchestrated" beyond what the operator
+  would normally write.
+
+## Allowed internal artifacts (vocabulary OK)
+
+The following are NOT external — full Kesh vocabulary is fine:
+
+- Chat output back to the operator running Kesh.
+- Files under `~/.cursor/`, `~/.cursor/agents/`, `~/.cursor/rules/`, `~/.cursor/skills/`.
+- Files under `<repo>/.cursor/`, `<repo>/AGENTS.md`.
+- Local design notes the operator has explicitly marked internal.
+- This rule file and its peers.
+
+## Rewriting pattern (Kesh-internal → external)
+
+| Internal phrasing (chat) | External phrasing (Confluence / Jira / PR) |
+|---|---|
+| "Kesh-orchestrated multi-agent review" | "Reviewed the doc / change" |
+| "Krishna challenge: WEAK — staleness mechanism unaddressed" | "Worth flagging that there's no review cadence or owner — this will rot." |
+| "Bhishma found 4 🔴 CRITICAL issues" | "Found 4 critical issues" |
+| "Lakshman use-case coverage: PASS" | "Verified the use cases work end to end" |
+| "Draupadi customer-impact: ❌ FAIL" | "This will affect customers — see below." |
+| "Money Lens: INVEST" | "Worth doing — ROI estimate below." |
+| "Decision Engine verdict: GO" | "Recommend going ahead." |
+| "Kripacharya production-readiness checklist" | "Production-readiness checklist" |
+| "Kesh final verdict: NO-SHIP" | "Not ready to ship." / "Hold this." |
+| "Sanjaya scanned the codebase" | "I went through the codebase" / "Cross-checked against `origin/master`" |
+| "Vyasa harvested Confluence + Jira" | "Pulled the related Confluence pages and Jira tickets" |
+| "Phase 3 critique trio (Bhishma + Lakshman + Draupadi)" | "Code review, QA, and customer-impact pass" |
+| "Per the canonical 15-step flow" | (drop entirely) |
+
+The rule of thumb: name the **finding**, not the **agent that found it**.
+
+## Self-check before posting
+
+Before invoking any of:
+
+- `createConfluencePage`, `updateConfluencePage`
+- `createConfluenceInlineComment`, `createConfluenceFooterComment`
+- `createJiraIssue`, `editJiraIssue`, `addCommentToJiraIssue`
+- `gh pr create`, `gh pr edit`, `gh pr review`, `gh issue create/edit/comment`
+- Slack send
+
+…run a one-pass scan of the body for the forbidden vocabulary above. If any
+forbidden term hits, rewrite using the table. Do NOT post anything that
+contains a forbidden term in an external artifact.
+
+## Default-to-scrubbed posture
+
+In ambiguous cases, default to **scrubbed** voice. It is always safe to remove
+agent names; it is rarely safe to leave them in.
+
+If the operator explicitly asks for "the full Kesh report" / "the agent
+breakdown" / "the multi-agent verdict" inside Cursor chat → vocabulary is
+allowed (chat is internal). But the moment that content gets piped into a
+Confluence page or Jira ticket, it must be scrubbed.
+
+## Cross-references
+
+| Concern | File |
+|---|---|
+| Kesh canonical contract | `~/.cursor/rules/kesh-agent-spec.mdc` |
+| Always-on routing | `~/.cursor/rules/kesh-always-on.mdc` |
+| Runtime router | `~/.cursor/rules/kesh-runtime-router.mdc` |
+| Explanation framework (chat-internal) | `~/.cursor/rules/kesh-explanation-framework.mdc` |
+| **External output voice (this file)** | `~/.cursor/rules/kesh-external-output-voice.mdc` |

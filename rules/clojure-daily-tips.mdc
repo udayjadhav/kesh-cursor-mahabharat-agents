@@ -1,0 +1,182 @@
+---
+description: Clojure day-to-day quick-reference tips (layout, indentation, ns form). Lightweight companion to the full Clojure style guide; use for fast lookups during authoring/review.
+globs: **/*.clj,**/*.cljs,**/*.cljc,**/*.edn
+alwaysApply: false
+version: 1.0.0
+---
+
+# Clojure — Day-to-Day Programming Quick Reference
+
+> **Scope note:** This is a lightweight quick-reference for fast lookups during daily programming. It is **not** a replacement for the full style guide. For anything beyond these core layout/indentation/`ns` rules, refer to:
+>
+> - **Full rule:** `~/.cursor/rules/clojure-review.mdc` (Helpshift Clojure Style Guide, comprehensive)
+> - **Upstream references:**
+>   - Helpshift Clojure Style Guide (internal)
+>   - Helpshift Programming Guidelines (internal)
+>   - [WIP] Clojure Project Conventions (internal)
+>   - Community guide: https://guide.clojure.style/
+
+---
+
+## Source Code Layout & Organization
+
+### Indentation: spaces, not tabs
+- Use **spaces** for indentation. No hard tabs.
+
+### 2-space body indent
+Use **2 spaces** to indent the bodies of forms that have body parameters. This covers all `def` forms, special forms, and macros that introduce local bindings (e.g. `loop`, `let`, `when-let`) and many macros like `when`, `cond`, `as->`, `cond->`, `case`, `with-*`, etc.
+
+✅ Good:
+
+```clojure
+(when something
+  (something-else))
+
+(with-out-str
+  (println "Hello, ")
+  (println "world!"))
+```
+
+❌ Bad — four spaces:
+
+```clojure
+(when something
+    (something-else))
+```
+
+❌ Bad — one space:
+
+```clojure
+(with-out-str
+ (println "Hello, ")
+ (println "world!"))
+```
+
+### Vertically align fn/macro arguments spanning multiple lines
+
+✅ Good:
+
+```clojure
+(filter even?
+        (range 1 10))
+```
+
+❌ Bad:
+
+```clojure
+(filter even?
+  (range 1 10))
+```
+
+### Single-space indent when no args are on the fn-name line
+
+When a function/macro call places **no** arguments on the same line as the function name, use **single-space indent** from the opening paren.
+
+✅ Good:
+
+```clojure
+(filter
+ even?
+ (range 1 10))
+
+(or
+ ala
+ bala
+ portokala)
+```
+
+❌ Bad — two spaces:
+
+```clojure
+(filter
+   even?
+   (range 1 10))
+
+(or
+  ala
+  bala
+  portokala)
+```
+
+### Vertically align `let` bindings and map keys
+
+✅ Good:
+
+```clojure
+(let [thing1 "some stuff"
+      thing2 "other stuff"]
+  {:thing1 thing1
+   :thing2 thing2})
+```
+
+❌ Bad:
+
+```clojure
+(let [thing1 "some stuff"
+  thing2 "other stuff"]
+  {:thing1 thing1
+   :thing2 thing2})
+```
+
+---
+
+## `ns` Form
+
+### Canonical `ns` form shape
+
+```clojure
+(ns examples.ns
+  (:refer-clojure :exclude [next replace remove])
+  (:require [clojure.string :as s :refer [blank?]]
+            [clojure.set :as set]
+            [clojure.java.shell :as sh])
+  (:import java.util.Date
+           java.text.SimpleDateFormat
+           [java.util.concurrent Executors
+                                 LinkedBlockingQueue]))
+```
+
+### `:require` preference order
+
+Prefer in this order:
+
+1. `:require :as`                   ← default choice
+2. `:require :refer [specific syms]`  ← when a few names need to be bare
+3. `:require :refer :all`             ← rare, only when warranted
+4. `:use`                             ← **deprecated**, do not use in new code
+
+✅ Good — `:as`:
+
+```clojure
+(ns examples.ns
+  (:require [clojure.zip :as zip]))
+```
+
+✅ Good — `:refer` with specific symbols:
+
+```clojure
+(ns examples.ns
+  (:require [clojure.zip :refer [lefts rights]]))
+```
+
+⚠️ Acceptable only as warranted — `:refer :all`:
+
+```clojure
+(ns examples.ns
+  (:require [clojure.zip :refer :all]))
+```
+
+❌ Bad — `:use` is deprecated:
+
+```clojure
+(ns examples.ns
+  (:use clojure.zip))
+```
+
+---
+
+## Using this Reference
+
+- **Authoring:** scan these rules before submitting a diff — they catch the most common daily-code layout issues.
+- **Review:** if a finding is purely about layout/indent/ns form, cite this file. For anything broader (naming, idioms, tests, docs, mutation, macros), use `clojure-review.mdc`.
+- **Conflicts:** if this file and the comprehensive rule ever disagree, **the comprehensive rule (`clojure-review.mdc`) wins** — this is just a daily-use shortcut.
