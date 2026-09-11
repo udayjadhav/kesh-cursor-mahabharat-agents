@@ -9,11 +9,8 @@ version: 1.0.0
 
 > **Scope note:** This is a lightweight quick-reference for fast lookups during daily programming. It is **not** a replacement for the full style guide. For anything beyond these core layout/indentation/`ns` rules, refer to:
 >
-> - **Full rule:** `~/.cursor/rules/clojure-review.mdc` (Helpshift Clojure Style Guide, comprehensive)
+> - **Full rule:** `~/.cursor/rules/clojure-review.mdc` (comprehensive)
 > - **Upstream references:**
->   - Helpshift Clojure Style Guide (internal)
->   - Helpshift Programming Guidelines (internal)
->   - [WIP] Clojure Project Conventions (internal)
 >   - Community guide: https://guide.clojure.style/
 
 ---

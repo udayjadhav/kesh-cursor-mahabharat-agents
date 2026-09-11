@@ -89,7 +89,7 @@ User Question
 | Agent | When Needed |
 |-------|-------------|
 | Sanjaya | Understanding architecture, finding code |
-| Vyasa | Pulling organisational knowledge from five sources (Confluence + Jira + Helpshift helpcenter + developer reference + status page) for a topic — runs parallel with Vidura + Sanjaya in Phase 1 Stage 1; emits `customer_doc_drift` red-flag when helpcenter claims contradict Sanjaya's code findings |
+| Vyasa | Pulling organisational knowledge from five sources (Confluence + Jira + customer helpcenter + developer reference + status page) for a topic — runs parallel with Vidura + Sanjaya in Phase 1 Stage 1; emits `customer_doc_drift` red-flag when helpcenter claims contradict Sanjaya's code findings |
 | Vishwakarma | Design decisions, patterns |
 | Bhishma | Finding bugs, code quality |
 | Lakshman | Test scenarios, edge cases |

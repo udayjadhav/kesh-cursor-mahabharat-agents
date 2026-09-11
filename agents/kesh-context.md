@@ -1,4 +1,20 @@
+---
+name: kesh-context
+description: Kesh support module for shared context and handoff between specialists. Use when assembling or validating the context object passed across the 15-step flow.
+---
+
 # Kesh Context Management
+
+
+
+## Language (always)
+
+When writing for a human (chat, Confluence, Jira, section diffs, mermaid labels):
+
+- Short sentences. Everyday words.
+- Use the product's own words, not internal jargon, class names, or option numbers, unless the user asked for a code-level answer.
+- Say what happens in order.
+- This voice applies to **every section** and **every diagram**, not only Purpose / Problem.
 
 ## Global Context Memory
 
@@ -8,6 +24,14 @@ Maintain this shared context object across ALL steps:
 {
   "input_type": "CODE_INPUT | PATCH_INPUT | IDEA_INPUT | DEFINED_INPUT",
   "user_input": "",
+  "cache_gate": {
+    "result": "FULL_HIT | PARTIAL_HIT | MISS | BYPASS",
+    "fingerprint": "",
+    "agents_reused": [],
+    "agents_to_run": [],
+    "sources": [],
+    "ttl_hours_remaining": null
+  },
   "krishna_output": {
     "verdict": "PROCEED | RECONSIDER | KILL",
     "roi_assessment": {},
@@ -95,6 +119,8 @@ Maintain this shared context object across ALL steps:
 - ALWAYS update shared_knowledge after each agent completes
 - Pass relevant portions to each agent
 - Track iteration_history for learning from mistakes
+- Run **Cache Gate** (`~/.cursor/rules/kesh-token-cache.mdc`) before Phase 1; on PARTIAL_HIT, pre-fill `shared_knowledge` from `~/.cursor/knowledge/cache/entries/<fingerprint>.json` so reused agents are not re-invoked
+- After a successful Decision Engine / SHIP path on a MISS, **write** a cache entry (summaries only, no secrets)
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: Every dev spec's Scoping / Estimation section MUST include the 6 default lifecycle tasks (Dev Spec review, Code review, Sandbox, Dev Testing, CM, Release). Convention sourced from Helpshift practice.
+description: Every dev spec's Scoping / Estimation section MUST include the 6 default lifecycle tasks (Dev Spec review, Code review, Sandbox, Dev Testing, CM, Release).
 globs: **/*.md, **/specs/**, **/docs/**
 version: 1.2.0
 alwaysApply: false
@@ -9,7 +9,7 @@ alwaysApply: false
 
 Every dev spec's `Scoping / Estimation` section (or equivalent — "Estimation", "Effort", "Task Breakdown", "Implementation Plan") MUST include these 6 default lifecycle tasks at minimum, in addition to per-feature engineering tasks.
 
-Source convention: [Impact Analysis: Reducing Chatbot Step Timeout Below 30 Seconds — Scoping & Estimation](https://helpshift.atlassian.net/wiki/spaces/~7120200341ef509b9f4a98a1d91e685c61dcab/pages/6057492974/Impact+Analysis+Reducing+Chatbot+Step+Timeout+Below+30+Seconds#Scoping-and-Estimation%3A) — established Helpshift practice for spec-shaped docs.
+These six tasks are the default floor for spec-shaped docs so review, sandbox, testing, change management, and release are not forgotten at sizing time.
 
 ## When this applies
 
@@ -100,7 +100,7 @@ Example skeleton:
 - **Dashboard / metrics setup** — Datadog dashboards, alarm definitions, cardinality budget.
 - **Rollback drill** — automated SLA assertion test.
 - **DB migrators / index builds** — pre-build dup audits, background-build spec, observability hooks.
-- **Feature-flag Twin-set registration** (Helpshift-specific) — per `.cursor/rules/moby-feature-flag-registry.mdc`.
+- **Feature-flag registration** — if the change is gated, budget the flag registry / twin-set work.
 
 ## Tiny-spec exception
 
@@ -112,7 +112,7 @@ For anything larger, all six tasks must be itemised.
 
 The Scoping section MUST NOT include any inline meta-narrative justifying WHY the lifecycle tasks are present. Phrases like:
 
-- "These six tasks apply to every dev spec at Helpshift and are budgeted explicitly here…"
+- "These six tasks apply to every dev spec and are budgeted explicitly here…"
 - "BE owns the lifecycle by default; FE participates in L1 and L4…"
 - "Source convention: <link>…"
 - Any sentence beginning with "These tasks…" / "This section…" / "We budget these because…"

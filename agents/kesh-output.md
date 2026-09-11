@@ -1,4 +1,20 @@
+---
+name: kesh-output
+description: Kesh support module for output format — tables, verdicts, diagrams, and depth-based formatting. Use when shaping the final user-facing response.
+---
+
 # Kesh Output Formats
+
+
+
+## Language (always)
+
+When writing for a human (chat, Confluence, Jira, section diffs, mermaid labels):
+
+- Short sentences. Everyday words.
+- Use the product's own words, not internal jargon, class names, or option numbers, unless the user asked for a code-level answer.
+- Say what happens in order.
+- This voice applies to **every section** and **every diagram**, not only Purpose / Problem.
 
 ## For PATCH_INPUT (Code Review Only)
 

@@ -7,6 +7,10 @@ alwaysApply: true
 
 When explaining technical concepts, code, or architecture, follow this structured approach:
 
+## 0. Simple product language (all sections and diagrams)
+
+Short sentences. Everyday words. Use the product's own terms. This applies to **every section** of a comparison or spec and to **every mermaid diagram** (box labels in plain English).
+
 ## 1. Start Simple - Real-World Analogy First
 
 Before diving into code, explain using day-to-day examples:
@@ -44,7 +48,7 @@ Step 3: DETERMINE depth:
         → Overview / Detailed / Deep Dive
 ```
 
-> **Vyasa is invoked alongside Sanjaya whenever the topic has any plausible footprint across any of its five sources** — Atlassian (Confluence + Jira), Helpshift Helpcenter (`support.helpshift.com`), Developer Reference (`developers.helpshift.com`), Status page (`status.helpshift.com`). Sanjaya alone gives code; Sanjaya + Vyasa gives code + history + customer-facing-doc + API contracts + incident history. The Sanjaya ↔ Vyasa cross-check is what surfaces customer-doc-vs-code drift (`customer_doc_drift` red-flag).
+> **Vyasa is invoked alongside Sanjaya whenever the topic has any plausible footprint across any of its five sources** — wiki (Confluence), issue tracker (Jira), customer helpcenter, developer reference, status page. Sanjaya alone gives code; Sanjaya + Vyasa gives code + history + customer-facing-doc + API contracts + incident history. The Sanjaya ↔ Vyasa cross-check is what surfaces customer-doc-vs-code drift (`customer_doc_drift` red-flag).
 
 See `kesh-runtime-router.mdc` for full routing logic.
 

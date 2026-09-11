@@ -69,7 +69,7 @@ if [[ "$DRY_RUN" != "1" ]]; then
 fi
 
 install_dir "$SCRIPT_DIR/agents"       "$CURSOR_DIR/agents"       "agents (21 files)"
-install_dir "$SCRIPT_DIR/rules"        "$CURSOR_DIR/rules"        "rules (12 files)"
+install_dir "$SCRIPT_DIR/rules"        "$CURSOR_DIR/rules"        "rules (13 files)"
 install_dir "$SCRIPT_DIR/skills/xray"  "$CURSOR_DIR/skills/xray"  "skills/xray"
 
 echo ""

@@ -1,12 +1,12 @@
 # Optional / org-specific files
 
-These files are **examples or org-specific**. Customize before use or exclude from install.
+These files are **examples**. Customise before use or exclude from install.
 
 ## `teams.mdc` (in main `rules/`)
 
-The shipped `rules/teams.mdc` contains **Helpshift** Jira team rosters and JQL snippets. On a new machine:
+The shipped `rules/teams.mdc` is a **blank roster template**. On a new machine:
 
-1. Replace account IDs and emails with your team's, or
+1. Fill in your Atlassian site, cloud ID, projects, and people, or
 2. Delete `~/.cursor/rules/teams.mdc` after install if unused
 
 Template pattern:
@@ -49,6 +49,7 @@ rules/kesh-agent-spec.mdc
 rules/kesh-always-on.mdc
 rules/kesh-runtime-router.mdc
 rules/kesh-explanation-framework.mdc
+rules/kesh-token-cache.mdc
 rules/global-local-sync.mdc
 skills/xray/*
 ```

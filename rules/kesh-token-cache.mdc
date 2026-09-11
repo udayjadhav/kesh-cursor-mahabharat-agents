@@ -1,0 +1,116 @@
+---
+description: Kesh Cache Gate — check local prior outputs before Phase 1 to avoid re-running agents whose work is already available and still valid.
+alwaysApply: true
+---
+
+# Kesh Token Cache (Cache Gate)
+
+> **Canonical contract:** `~/.cursor/rules/kesh-agent-spec.mdc`. This rule adds **Step 0.5 — Cache Gate**. It does **not** override Agent Maximization with cost excuses — it only skips agents whose **inputs already exist as valid cached output** (applicability skip).
+
+## Why this exists
+
+The full 15-step flow is correct but expensive. Identical or near-identical requests (same Jira key, same architecture Q, same review topic) often re-invoke Vidura / Sanjaya / Vyasa / Vishwakarma and burn tokens for answers already on disk.
+
+## Step 0.5 — Cache Gate (mandatory, before Phase 1)
+
+After Emergency Check, **before** Intent Analyzer fans out agents:
+
+```
+USER REQUEST
+    │
+    ▼
+EMERGENCY CHECK  (unchanged)
+    │
+    ▼
+CACHE GATE  ← NEW
+    │
+    ├─ FULL_HIT   → return cached synthesis; skip re-run of cached agents
+    ├─ PARTIAL_HIT → inject shared_knowledge; run only missing/stale agents
+    └─ MISS        → full flow; WRITE cache on successful completion
+    │
+    ▼
+INTENT ANALYZER → Phase 1 …
+```
+
+### Probe order (cheap → expensive)
+
+1. **`~/.cursor/knowledge/cache/index.json`** — fingerprint match (exact)
+2. **Same-session prior turns** — if this chat already answered the topic, reuse that synthesis
+3. **Agent transcripts** — `~/.cursor/projects/*/agent-transcripts/**/*.jsonl` for matching topic / Jira / file set (last 30 days)
+4. **Knowledge base** — `~/.cursor/knowledge/*.md` for static architecture / process facts
+5. **Scratch / specs** — `~/.cursor/scratch/**`, repo `specs/**` for the same ticket/feature
+
+Stop at the first source that yields a usable hit. Do **not** run Phase 1 agents to “confirm” a clear FULL_HIT.
+
+### Fingerprint (compute once per request)
+
+```
+fingerprint = first16(sha256(
+  normalize(topic) + "|" + input_type
+  + "|" + sorted(entities) + "|" + code_revision_hint
+))
+```
+
+- `entities` = Jira keys, Confluence page keys, primary file paths, repo name
+- `code_revision_hint` = `git rev-parse --short HEAD` for CODE/PATCH; else `"n/a"`
+- User phrases `bypass cache` / `fresh run` / `ignore cache` / `invalidate cache` → force **MISS**
+
+### Hit outcomes
+
+| Result | Applicability meaning | Agents |
+|--------|----------------------|--------|
+| **FULL_HIT** | Every needed agent output already exists and is TTL-valid | Skip those agents; Kesh synthesizes from cache. For delivery claims, still run Kripacharya + Kesh closers if user is asking to SHIP. |
+| **PARTIAL_HIT** | Some agent outputs exist; others missing/stale | Skip only the fresh-cached agents; run the rest in parallel as usual |
+| **MISS** | Nothing usable | Full applicable flow; **write** cache after Decision Engine (or after Kesh SHIP/NO-SHIP for deliveries) |
+
+### TTL defaults
+
+| Content class | Default TTL |
+|---------------|-------------|
+| Architecture / process Q (IDEA, no code) | 7 days |
+| Org harvest (Vyasa) | 3 days |
+| Code xray (Sanjaya) | 24 hours **or** until HEAD changes |
+| Code review / QA of a specific diff | invalidate when diff hash changes |
+| Build artifacts (Parth/Swachalit) | do not reuse across sessions unless fingerprint + HEAD match |
+
+### Write path (after successful run)
+
+1. Build entry per `~/.cursor/knowledge/cache/README.md` schema
+2. Write `entries/<fingerprint>.json` with **summaries only** (≤ ~2k tokens per agent; never full diffs / secrets)
+3. Upsert into `index.json`: `{ fingerprint, topic, input_type, entities, created_at, ttl_hours, path }`
+4. Cap store: keep newest **50** entries; delete oldest files when over cap
+
+### What never skips on cache alone
+
+Even on FULL_HIT of an older analysis:
+
+- **New code / new diff** the user just produced → Bhishma, Lakshman, Draupadi still run on **that** artifact
+- **Phase 4 gates** when the question is a **new decision** not already decided in cache (Krishna + Money Lens + Decision Engine)
+- **Emergency Override** path (no cache short-circuit into ER; ER has its own rules)
+
+### Output note (chat-internal)
+
+When serving from cache, Kesh must state briefly:
+
+`CACHE: FULL_HIT | PARTIAL_HIT (agents reused: …; agents run: …)`
+
+So the operator can see why agents were skipped.
+
+### Bypass / invalidate
+
+| User says | Action |
+|-----------|--------|
+| `bypass cache` / `fresh run` / `ignore cache` | Force MISS for this turn |
+| `invalidate cache` / `clear kesh cache` | Delete matching fingerprints (or all entries if “clear all”) then MISS |
+
+## Compatibility with Agent Maximization
+
+This is **not** “skip to save tokens.”
+
+An agent is skipped on cache hit only when:
+
+1. Its **inputs already exist** as a prior valid output (cache / transcript / KB), **and**
+2. Its **output would be redundant** (same fingerprint + TTL + code hint), **and**
+3. The request does not introduce a **new artifact** that agent must freshly critique/build
+
+That matches the applicability test in `kesh-agent-spec.mdc`. Pure “this is expensive, skip them” remains forbidden.

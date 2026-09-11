@@ -91,6 +91,8 @@ Resolution order: **local repo → global home**.
 ```
 User message
   → kesh-always-on + runtime-router (rules)
+  → Emergency check
+  → Cache Gate (kesh-token-cache) — FULL_HIT / PARTIAL_HIT / MISS
   → Kesh classifies input (kesh-flows)
   → Parallel specialists produce artifacts
   → Sutradhar runs build loop if needed

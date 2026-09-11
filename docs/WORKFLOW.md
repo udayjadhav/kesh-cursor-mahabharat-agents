@@ -9,12 +9,13 @@ A software task goes through a **hospital**:
 | Hospital | Kesh |
 |----------|------|
 | Triage nurse | Intent classification + Kesh router |
-| Specialists (parallel) | Vidura, Sanjaya, Vyasa, Vishwakarma, Sarthi |
+| Chart check | Cache Gate — reuse a diagnosis already on file |
+| Specialists (parallel) | Vidura, Sanjaya, Vyasa, then Vishwakarma + Sarthi |
 | Surgery | Parth + Swachalit |
 | Independent second opinions | Bhishma, Lakshman, Draupadi (parallel) |
 | Ethics / cost committee | Krishna, Money Lens |
 | Chief of medicine | Decision Engine |
-| Discharge review | Kripacharya → Kesh SHIP/NO-SHIP |
+| Discharge review | Kripacharya → Kesh SHIP / NO-SHIP |
 
 ## Full flow diagram
 
@@ -22,7 +23,15 @@ A software task goes through a **hospital**:
 flowchart TD
   START([User request]) --> CLASS{Input type?}
   CLASS -->|Emergency explicit| EMRG[Emergency override]
-  CLASS -->|Normal| S1
+  CLASS -->|Normal| CACHE
+
+  subgraph CACHE [Step 0.5 — Cache Gate]
+    C1[Probe knowledge/cache, session, transcripts, KB]
+    C1 --> C2{Hit?}
+    C2 -->|FULL_HIT| REUSE[Reuse cached synthesis]
+    C2 -->|PARTIAL_HIT| PART[Run only missing or stale agents]
+    C2 -->|MISS| S1
+  end
 
   subgraph S1 [Stage 1 — parallel]
     direction LR
@@ -31,6 +40,7 @@ flowchart TD
     Y1[Vyasa org history]
   end
 
+  PART --> MERGE
   S1 --> MERGE[Merge context]
   MERGE --> S2
 
@@ -77,6 +87,7 @@ flowchart TD
   DE -->|NO-GO| STOP
 
   GATES --> FINAL
+  REUSE --> FINAL
   subgraph FINAL [Phase 5 — Sequential]
     KR[Kripacharya validate]
     KE[Kesh SHIP / NO-SHIP]
@@ -90,9 +101,10 @@ flowchart TD
 
 | Step | Phase | Agent | Tier | Blocks? | On failure |
 |------|-------|-------|------|---------|------------|
+| 0.5 | Cache | Cache Gate | — | No | MISS → full flow |
 | 1 | Understand | Vidura | A | No | — |
 | 2 | Understand | Sanjaya | A | No | — |
-| 3 | Understand | Vyasa | A | No | — |
+| 3 | Understand | Vyasa | A | No | `no_context` does not block |
 | 4 | Understand | Vishwakarma | A | No | — |
 | 5 | Understand | Sarthi | A | No | — |
 | 6 | Build | Parth | B | No | — |
@@ -110,7 +122,8 @@ flowchart TD
 
 | Stage | Agents (parallel) | Waits for |
 |-------|-------------------|-----------|
-| 1 | Vidura ∥ Sanjaya ∥ Vyasa | — |
+| 0.5 | Cache probe (cheap) | — |
+| 1 | Vidura ∥ Sanjaya ∥ Vyasa | Cache miss / partial |
 | 2 | Vishwakarma ∥ Sarthi | Stage 1 merge |
 | 3 | Parth (per file) ∥ … | Stage 2 |
 | 4 | Swachalit | Parth lane(s) |
@@ -139,8 +152,10 @@ Iteration 6+ → escalate to Vishwakarma for re-architecture.
 | PATCH_INPUT | Diff / PR review only | Parth, Swachalit if no build |
 | IDEA_INPUT | Vague idea | — |
 | DEFINED_INPUT | Clear requirements | Light Vidura |
+| CACHE_FULL_HIT | Valid cached synthesis | Agents whose output is already fresh |
+| CACHE_PARTIAL_HIT | Some agents stale / missing | Only the missing / stale agents run |
 
-Skips are **applicability-only**, never cost-based. See spec "Skip Logic".
+Skips are **applicability-only**, never cost-based. See spec "Skip Logic" and `kesh-token-cache.mdc`.
 
 ## Emergency override
 
@@ -149,15 +164,16 @@ Triggered **only** when the user explicitly says: production down, security brea
 - Skip Phase 1 → Sanjaya + Parth in parallel
 - Vyasa skipped
 - Bhishma once (no loop)
+- Cache Gate is not used as a shortcut into emergency
 - Mandatory full 15-step post-mortem within 24h
 
 ## Phase 4 outputs (what you get)
 
-**Krishna** — assumptions challenged, failure modes, verdict: STRONG / WEAK / KILL
+**Krishna** — assumptions challenged, failure modes, Data Model Reuse Audit, verdict: STRONG / WEAK / KILL
 
 **Money Lens** — scale, revenue, leverage, cost → INVEST / DEFER / REJECT
 
-**Decision Engine** — tradeoff matrix, risk scores (tech/biz/customer/time), **GO / CONDITIONAL / NO-GO**, prioritized next actions
+**Decision Engine** — tradeoff matrix (including Option 0), risk scores (tech/biz/customer/time), **GO / CONDITIONAL / NO-GO**, prioritized next actions
 
 ## Kesh modular files
 
@@ -165,7 +181,7 @@ These support the supervisor without replacing the spec:
 
 | File | Purpose |
 |------|---------|
-| `agents/kesh-flows.md` | Flow control, input classification |
+| `agents/kesh-flows.md` | Flow control, input classification, cache gate |
 | `agents/kesh-context.md` | Context handoff between agents |
 | `agents/kesh-output.md` | Output formatting |
 | `agents/kesh-rules.md` | Operational rules index |
@@ -174,5 +190,6 @@ These support the supervisor without replacing the spec:
 
 - `kesh-runtime-router.mdc` — intent-based routing
 - `kesh-always-on.mdc` — route all instructions through Kesh
+- `kesh-token-cache.mdc` — Cache Gate
 - `reuse-before-extend.mdc` — Option 0 reuse-only before new schema
-- `kesh-external-output-voice.mdc` — scrub agent names for Confluence/Jira/PR
+- `kesh-external-output-voice.mdc` — scrub agent names for Confluence / Jira / PR

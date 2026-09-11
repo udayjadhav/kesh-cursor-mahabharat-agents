@@ -9,8 +9,9 @@ Cursor rules live in `rules/*.mdc`. Files with `alwaysApply: true` in frontmatte
 | `kesh-agent-spec.mdc` | yes | **Canonical contract** — 15 steps, tiers, models, skip logic, loops |
 | `kesh-runtime-router.mdc` | yes | Intent analyzer → agent selection (not keyword matching) |
 | `kesh-always-on.mdc` | yes | Route user instructions through Kesh by default |
+| `kesh-token-cache.mdc` | yes | Step 0.5 Cache Gate before Phase 1 |
 | `kesh-explanation-framework.mdc` | yes | Analogies, diagrams, multi-perspective synthesis in chat |
-| `kesh-external-output-voice.mdc` | yes | Scrub agent vocabulary for Confluence/Jira/PR/Slack |
+| `kesh-external-output-voice.mdc` | yes | Scrub agent vocabulary for Confluence / Jira / PR / Slack |
 | `global-local-sync.mdc` | yes | `~/.cursor` global vs `<repo>/.cursor` local overrides |
 
 ## Quality and design rules
@@ -18,16 +19,16 @@ Cursor rules live in `rules/*.mdc`. Files with `alwaysApply: true` in frontmatte
 | File | alwaysApply | Purpose |
 |------|-------------|---------|
 | `reuse-before-extend.mdc` | yes | Option 0 reuse-only; field carrier inventory; consumer audit |
-| `dev-spec-authorship-voice.mdc` | yes | Specs read as engineer-authored (no AI meta, no §) |
-| `dev-spec-scoping-defaults.mdc` | contextual | L1–L6 lifecycle tasks in dev specs (Helpshift-oriented) |
+| `dev-spec-authorship-voice.mdc` | yes | Specs read as engineer-authored (no AI meta, no section-sign glyph) |
+| `dev-spec-scoping-defaults.mdc` | no | L1–L6 lifecycle tasks in dev specs |
 
 ## Optional / org-specific
 
 | File | Notes |
 |------|-------|
-| `teams.mdc` | Jira team rosters and JQL — **replace with your org** or delete |
-| `clojure-review.mdc` | Clojure code review conventions |
-| `clojure-daily-tips.mdc` | Clojure tips |
+| `teams.mdc` | Jira team roster **template** — replace with your org or delete |
+| `clojure-review.mdc` | Clojure code review conventions (`alwaysApply: false`) |
+| `clojure-daily-tips.mdc` | Clojure tips (`alwaysApply: false`) |
 
 ## Rule precedence
 
@@ -42,6 +43,7 @@ Cursor rules live in `rules/*.mdc`. Files with `alwaysApply: true` in frontmatte
 - Krishna KILL or Money Lens REJECT → stop
 - Vyasa never speculates — facts need citations
 - Skip agents only when inputs do not exist (not to save tokens)
+- Cache Gate skips are applicability skips (output already exists), not cost skips
 
 ## Editing rules after install
 
@@ -60,6 +62,6 @@ After changes, restart Cursor or reload the window.
 When you improve rules on one machine:
 
 ```bash
-cp ~/.cursor/rules/kesh-*.mdc /path/to/kesh-cursor-kit/rules/
+cp ~/.cursor/rules/*.mdc /path/to/kesh-cursor-mahabharat-agents/rules/
 git commit -am "Sync rules from workstation"
 ```

@@ -81,7 +81,7 @@ For each consumer that is in scope for the task, mark exactly one:
 
 When a consumer lives **outside the current repo** — an external library jar, another service, another team's repo — the spec MUST:
 
-1. Name the external repo / artifact explicitly (e.g., `helpshift/haystack`)
+1. Name the external repo / artifact explicitly (e.g., `org/query-dsl`)
 2. State the contract surface that needs to change (e.g., `haystack-7.query.genesis/field-spec`)
 3. Plan the cross-repo PR sequence: external repo first → publish new artifact version → bump version in current repo's manifest
 4. List the version coordinates that need to change (`project.clj`, `package.json`, `go.mod`, etc.) so the bumped dep actually reaches CI / sbox / prod
@@ -99,7 +99,7 @@ A spec that lists only same-repo changes when an external contract is involved i
 
 | External artifact | Coordinate (manifest) | Contract surface | Accepts today? | Change required if no | Cross-repo? |
 |---|---|---|---|---|---|
-| `helpshift/haystack` | `project.clj` → `helpshift/haystack "5.6.0"` | `haystack-7.query.genesis/field-spec` map | ❌ no entry for `:user_reported_app_id` | add `{:user_reported_app_id {:es-field :meta.user_reported_app_id :type :enum :description "..." :filter_type "Issue"}}` | YES — needs new haystack version + Moby dep bump |
+| `org/query-dsl` | manifest coordinate for the query library | field-spec / allow-list map | ❌ no entry for the reused field | add the field to the library's contract map | YES — new library version + dep bump in this repo |
 | ... | ... | ... | ... | ... | ... |
 
 ### How to find the external contract surfaces

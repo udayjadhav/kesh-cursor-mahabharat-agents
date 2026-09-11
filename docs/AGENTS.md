@@ -56,10 +56,12 @@ description: ...
 
 | File | Role |
 |------|------|
-| `kesh-flows.md` | Input types, 15-step diagram, parallel points, emergency |
+| `kesh-flows.md` | Input types, cache gate, 15-step diagram, parallel points, emergency |
 | `kesh-context.md` | What each agent receives and returns |
 | `kesh-output.md` | Tables, verdicts, diagrams for final response |
 | `kesh-rules.md` | Index of enforcement rules |
+
+Support modules have `name` + `description` frontmatter and no pinned `model` (they inherit the parent chat).
 
 ## When to invoke which agent
 

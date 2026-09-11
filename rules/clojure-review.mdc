@@ -1,5 +1,5 @@
 ---
-description: Clojure style, idioms, conventions, testing, docstrings & namespacing — based on the Helpshift Clojure Style Guide (fork of community guide). Used by Bhishma (review), Parth (impl), Swachalit (tests).
+description: Clojure style, idioms, conventions, testing, docstrings & namespacing — based on the community Clojure style guide plus local conventions. Used by Bhishma (review), Parth (impl), Swachalit (tests).
 globs: **/*.clj,**/*.cljs,**/*.cljc,**/*.edn
 alwaysApply: false
 version: 2.1.0
@@ -7,7 +7,7 @@ version: 2.1.0
 
 # Clojure Style & Review Rules
 
-Enforced during code review (Bhishma) and code authoring (Parth). Based on the Helpshift Clojure Style Guide — a fork of https://guide.clojure.style/ with Helpshift-specific conventions.
+Enforced during code review (Bhishma) and code authoring (Parth). Based on the community Clojure style guide (https://guide.clojure.style/) plus local conventions.
 
 > **Companion reference:** `~/.cursor/rules/clojure-daily-tips.mdc` is a lightweight quick-reference covering the most common layout / `ns` / indentation rules for daily programming. Use it for fast lookups. This file (`clojure-review.mdc`) is the **authoritative** reference — if the two ever disagree, this one wins.
 
@@ -791,7 +791,7 @@ Place above the code, include a colon + space + note. Sign with initials + date.
 
 ## 19. Cross‑File Allow‑Set / Registry Contracts (`:pre`-gated sets) — 🔴 CRITICAL
 
-This is a recurring, high‑cost bug class in Helpshift Clojure code. Bhishma MUST explicitly check this on every PR that touches feature flags, dispatch values, enum‑like string/keyword literals, or anything that reads "type tags".
+This is a recurring, high‑cost bug class in Clojure code. Bhishma MUST explicitly check this on every PR that touches feature flags, dispatch values, enum‑like string/keyword literals, or anything that reads "type tags".
 
 ### What the pattern looks like
 
@@ -898,7 +898,7 @@ When reviewing, consult the workspace rule for the concrete allow‑sets in that
 When reviewing a Clojure diff, surface findings in this priority order (issues-only — skip clean files/hunks):
 
 1. **Safety & correctness (🔴/🟠)**
-   - **Cross‑file allow‑set contract miss** (🔴) — new feature/type/event string or keyword added in one ns without being registered in the `:pre`-gated allow‑set in the sibling ns. See §19 for the mandatory procedure and repo registries. This is the single highest‑cost miss class in Helpshift code and MUST be explicitly checked on every diff that touches a feature flag, dispatch key, or map `:feature`/`:type`/`:event`/`:kind` literal.
+   - **Cross‑file allow‑set contract miss** (🔴) — new feature/type/event string or keyword added in one ns without being registered in the `:pre`-gated allow‑set in the sibling ns. See §19 for the mandatory procedure and repo registries. This is the single highest‑cost miss class in this kind of Clojure code and MUST be explicitly checked on every diff that touches a feature flag, dispatch key, or map `:feature`/`:type`/`:event`/`:kind` literal.
    - Missing `!` on side-effecting fn
    - Missing `?` on predicate fn
    - Wrong threading macro (`->` vs `->>`)

@@ -162,18 +162,18 @@ All these live in `~/.cursor/agents/`:
 → All repos get the update
 ```
 
-### Example 2: "For moby only, Bhishma should also check payment flows"
+### Example 2: "For payments-api only, Bhishma should also check payment flows"
 ```
-→ "For moby only" = local qualifier
-→ Create /Users/uday.jadhav/dev/moby/.cursor/agents/bhishma.md
-→ Only moby gets this behavior
+→ "For payments-api only" = local qualifier
+→ Create <repo>/.cursor/agents/bhishma.md
+→ Only that repo gets this behavior
 → Other repos use global bhishma
 ```
 
-### Example 3: "Remove the moby-specific Bhishma rule"
+### Example 3: "Remove the payments-api-specific Bhishma rule"
 ```
-→ Delete moby/.cursor/agents/bhishma.md
-→ Moby now uses global bhishma
+→ Delete <repo>/.cursor/agents/bhishma.md
+→ That repo now uses global bhishma
 ```
 
 ---

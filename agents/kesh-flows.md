@@ -1,4 +1,20 @@
+---
+name: kesh-flows
+description: Kesh support module for input classification, cache gate, 15-step flow control, emergency override, and parallelization. Use when routing or validating orchestration flow.
+---
+
 # Kesh Flow Control
+
+
+
+## Language (always)
+
+When writing for a human (chat, Confluence, Jira, section diffs, mermaid labels):
+
+- Short sentences. Everyday words.
+- Use the product's own words, not internal jargon, class names, or option numbers, unless the user asked for a code-level answer.
+- Say what happens in order.
+- This voice applies to **every section** and **every diagram**, not only Purpose / Problem.
 
 > **Canonical contract:** `~/.cursor/rules/kesh-agent-spec.mdc`. When this file conflicts with the spec, **the spec wins**. This file documents operational flow behavior; the spec defines contracts.
 >
@@ -6,7 +22,7 @@
 
 ---
 
-## Flow Control Logic — Canonical 14-Step Flow
+## Flow Control Logic — Canonical 15-Step Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -17,25 +33,33 @@
 │      │                                                                       │
 │      ├── CODE_INPUT / PATCH_INPUT / IDEA_INPUT / DEFINED_INPUT              │
 │      ├── Emergency? → EMERGENCY OVERRIDE (see below)                         │
-│      └── Else → Phase 1                                                      │
+│      └── Else → Step 0.5                                                     │
+│                                                                              │
+│  STEP 0.5: CACHE GATE (token efficiency — see kesh-token-cache.mdc)         │
+│      │                                                                       │
+│      ├── Probe: knowledge/cache → session → transcripts → KB → scratch       │
+│      ├── FULL_HIT    → reuse synthesis; skip cached agents                   │
+│      ├── PARTIAL_HIT → inject shared_knowledge; run missing/stale only       │
+│      └── MISS        → Phase 1; WRITE cache on successful completion         │
 │                                                                              │
 │  ┌─ PHASE 1: UNDERSTAND (Tier A — Deep Reasoning) ──────────────────┐       │
 │  │                                                                    │       │
-│  │  STAGE 1 (parallel):                                               │       │
+│  │  STAGE 1 (parallel, 3-way):                                        │       │
 │  │    1. Vidura       → clarify requirements                          │       │
 │  │    2. Sanjaya      → xray / repo analysis                          │       │
+│  │    3. Vyasa        → org knowledge harvest                         │       │
 │  │                                                                    │       │
 │  │  STAGE 2 (parallel, after Stage 1 merge):                          │       │
-│  │    3. Vishwakarma  → design architecture                           │       │
-│  │    4. Sarthi       → task breakdown & execution plan               │       │
+│  │    4. Vishwakarma  → design architecture                           │       │
+│  │    5. Sarthi       → task breakdown & execution plan               │       │
 │  │                                                                    │       │
 │  └────────────────────────────┬───────────────────────────────────────┘       │
 │                               ▼                                              │
 │  ┌─ PHASE 2: BUILD (Tier B — Execution) ────────────────────────────┐       │
 │  │                                                                    │       │
 │  │  STAGE 3 (parallel per independent file):                          │       │
-│  │    5. Parth        → implement code ONLY (no self-review)          │       │
-│  │    6. Swachalit    → write unit/integration tests                  │       │
+│  │    6. Parth        → implement code ONLY (no self-review)          │       │
+│  │    7. Swachalit    → write unit/integration tests                  │       │
 │  │                                                                    │       │
 │  │  CRITICAL INVARIANT: Parth's model ≠ Bhishma's model               │       │
 │  │                                                                    │       │
@@ -44,11 +68,11 @@
 │  ┌─ PHASE 3: CRITIQUE (Tier C — independent critics) ───────────────┐       │
 │  │                                                                    │       │
 │  │  STAGE 4a (ALWAYS 3-way parallel):                                 │       │
-│  │    7. Bhishma    → code review    ← FAIL → loop back to step 5     │       │
-│  │    8. Lakshman   → QA validation  ← FAIL → loop back to step 5     │       │
-│  │    9. Draupadi   → user impact (advisory; does not block)          │       │
+│  │    8. Bhishma    → code review    ← FAIL → loop back to step 6     │       │
+│  │    9. Lakshman   → QA validation  ← FAIL → loop back to step 6     │       │
+│  │   10. Draupadi   → user impact (advisory; does not block)          │       │
 │  │                                                                    │       │
-│  │  LOOP BUDGET: steps 5→7→8 may loop max 5 times                     │       │
+│  │  LOOP BUDGET: steps 6→8→9 may loop max 5 times                     │       │
 │  │  Iteration 6 → escalate to Vishwakarma for re-architecture         │       │
 │  │                                                                    │       │
 │  └────────────────────────────┬───────────────────────────────────────┘       │
@@ -56,26 +80,26 @@
 │  ┌─ PHASE 4: STRATEGIC + BUSINESS GATES (Tier A) ───────────────────┐       │
 │  │                                                                    │       │
 │  │  STAGE 4b (parallel):                                              │       │
-│  │    10. Krishna       → Strong / Weak / KILL  ← KILL = STOP         │       │
-│  │    11. Money Lens    → INVEST / DEFER / REJECT ← REJECT = STOP     │       │
+│  │    11. Krishna       → Strong / Weak / KILL  ← KILL = STOP         │       │
+│  │    12. Money Lens    → INVEST / DEFER / REJECT ← REJECT = STOP     │       │
 │  │                                                                    │       │
 │  │  STAGE 4c (synthesizer, after gates):                              │       │
-│  │    12. Decision Engine → GO / CONDITIONAL / NO-GO                  │       │
+│  │    13. Decision Engine → GO / CONDITIONAL / NO-GO                  │       │
 │  │                                                                    │       │
 │  └────────────────────────────┬───────────────────────────────────────┘       │
 │                               ▼                                              │
 │  ┌─ PHASE 5: FINAL VALIDATION (Tier A) ─────────────────────────────┐       │
 │  │                                                                    │       │
 │  │  STAGE 5 (sequential by design):                                   │       │
-│  │    13. Kripacharya → final system validation                       │       │
-│  │    14. Kesh        → SHIP / NO-SHIP                                │       │
+│  │    14. Kripacharya → final system validation                       │       │
+│  │    15. Kesh        → SHIP / NO-SHIP                                │       │
 │  │                                                                    │       │
 │  └────────────────────────────────────────────────────────────────────┘       │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Wall-clock compression:** 14 logical steps collapse to **5 parallel stages** when aggressive parallelization is applied.
+**Wall-clock compression:** 15 logical steps collapse to **~5 parallel stages** when aggressive parallelization is applied.
 
 ---
 
@@ -87,8 +111,9 @@
 RUN IN PARALLEL:
     - Vidura   (requirements)
     - Sanjaya  (xray / codebase)
+    - Vyasa    (org knowledge — Confluence, Jira, helpcenter, dev ref, status)
 
-MERGE → shared_knowledge (requirements_summary + codebase_summary)
+MERGE → shared_knowledge (requirements_summary + codebase_summary + org_context)
 THEN → Stage 2
 ```
 
@@ -128,7 +153,7 @@ MERGE results
 
 IF Bhishma.fail OR Lakshman.fail:
     → iteration++
-    → IF iteration < 5: loop back to Parth (step 5)
+    → IF iteration < 5: loop back to Parth (step 6)
     → ELSE: escalate to Vishwakarma (re-architecture)
 ELSE:
     → proceed to Stage 4b (gates)
@@ -320,7 +345,7 @@ STORE → context.input_type
 ### STEP 1: Vidura (product) — Requirements Clarification
 
 ```
-CALL Vidura in PARALLEL with Sanjaya (Stage 1)
+CALL Vidura in PARALLEL with Sanjaya and Vyasa (Stage 1)
 
 Contains:
   - Problem statement
@@ -340,7 +365,7 @@ STORE → context.requirements_summary
 ### STEP 2: Sanjaya (xray) — Deep Repo Analysis
 
 ```
-CALL Sanjaya in PARALLEL with Vidura (Stage 1)
+CALL Sanjaya in PARALLEL with Vidura and Vyasa (Stage 1)
 
 Contains:
   - Tech stack
@@ -357,7 +382,26 @@ STORE → context.codebase_summary
 
 ---
 
-### STEP 3: Vishwakarma (architect) — System Design
+### STEP 3: Vyasa (chronicler) — Organisational Knowledge Harvest
+
+```
+CALL Vyasa in PARALLEL with Vidura and Sanjaya (Stage 1)
+
+Contains:
+  - Confluence design intent and decisions
+  - Jira ticket history and escalations
+  - Helpcenter articles (what customers are told)
+  - Developer reference (public API / SDK contracts)
+  - Status page incidents
+
+STORE → context.org_context
+```
+
+**Applicability skip:** Only if all five source probes return zero hits (`status: no_context`). Does not block Phase 1.
+
+---
+
+### STEP 4: Vishwakarma (architect) — System Design
 
 ```
 CALL Vishwakarma in PARALLEL with Sarthi (Stage 2)
@@ -376,7 +420,7 @@ STORE → context.architecture_decisions
 
 ---
 
-### STEP 4: Sarthi (planning) — Task Breakdown
+### STEP 5: Sarthi (planning) — Task Breakdown
 
 ```
 CALL Sarthi in PARALLEL with Vishwakarma (Stage 2)
@@ -394,7 +438,7 @@ STORE → context.plan
 
 ---
 
-### STEP 5: Parth (execution) — Implementation
+### STEP 6: Parth (execution) — Implementation
 
 ```
 CALL Parth (per independent file in parallel where possible)
@@ -409,7 +453,7 @@ STORE → context.code
 
 ---
 
-### STEP 6: Swachalit (tests) — Test Automation
+### STEP 7: Swachalit (tests) — Test Automation
 
 ```
 CALL Swachalit (per file in parallel, after Parth per-file completion)
@@ -426,7 +470,7 @@ STORE → context.tests
 
 ---
 
-### STEP 7-8-9: CRITIQUE TRIO (always 3-way parallel)
+### STEP 8-9-10: CRITIQUE TRIO (always 3-way parallel)
 
 ```
 RUN IN PARALLEL:
@@ -448,8 +492,8 @@ Outputs:
 LOOP DECISION:
   IF bhishma_output.fail OR lakshman_output.fail:
       → iteration++
-      → IF iteration < 5: GO BACK TO STEP 5 (Parth)
-      → ELSE: ESCALATE to Vishwakarma (step 3)
+      → IF iteration < 5: GO BACK TO STEP 6 (Parth)
+      → ELSE: ESCALATE to Vishwakarma (step 4)
   ELSE:
       → proceed to Phase 4 (gates)
 ```
@@ -458,7 +502,7 @@ LOOP DECISION:
 
 ---
 
-### STEP 10-11: STRATEGIC + BUSINESS GATES (parallel)
+### STEP 11-12: STRATEGIC + BUSINESS GATES (parallel)
 
 ```
 RUN IN PARALLEL:
@@ -474,12 +518,12 @@ IF Krishna.verdict == KILL:
 IF Money Lens.verdict == REJECT:
     → STOP. Explain business impact. Offer DEFER path.
 ELSE:
-    → proceed to Decision Engine (step 12)
+    → proceed to Decision Engine (step 13)
 ```
 
 ---
 
-### STEP 12: Decision Engine — Synthesis
+### STEP 13: Decision Engine — Synthesis
 
 ```
 CALL Decision Engine (synthesizer, serial)
@@ -501,7 +545,7 @@ ELSE (GO):
 
 ---
 
-### STEP 13: Kripacharya — Final System Validation
+### STEP 14: Kripacharya — Final System Validation
 
 ```
 CALL Kripacharya
@@ -518,7 +562,7 @@ Outputs: final verdict (PASS / CONDITIONAL / FAIL)
 
 ---
 
-### STEP 14: Kesh — SHIP / NO-SHIP
+### STEP 15: Kesh — SHIP / NO-SHIP
 
 ```
 INPUTS:

@@ -1,4 +1,20 @@
+---
+name: kesh-rules
+description: Kesh support module indexing decision-layer and language rules. Use when checking enforcement rules during orchestration.
+---
+
 # Kesh Rules & Guidelines
+
+
+
+## Language (always)
+
+When writing for a human (chat, Confluence, Jira, section diffs, mermaid labels):
+
+- Short sentences. Everyday words.
+- Use the product's own words, not internal jargon, class names, or option numbers, unless the user asked for a code-level answer.
+- Say what happens in order.
+- This voice applies to **every section** and **every diagram**, not only Purpose / Problem.
 
 ## Decision Layer Rules
 

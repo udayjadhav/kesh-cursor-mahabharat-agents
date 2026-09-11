@@ -1,14 +1,16 @@
 # Kesh Cursor Kit
 
-Portable multi-agent orchestration for [Cursor](https://cursor.com): agents, rules, skills, and documentation you can copy to any machine or share on GitHub.
+Portable multi-agent orchestration for [Cursor](https://cursor.com): agents, rules, skills, and documentation you can copy to any machine.
 
-Think of it as a **hospital workflow** — triage (intent), specialists in parallel (code, history, design), build, independent review, business gates, then ship/no-ship.
+Think of it as a **hospital workflow** — triage (intent), specialists in parallel (code, history, design), a cache check so you do not re-diagnose the same case, build, independent review, business gates, then ship / no-ship.
+
+**Repo:** [github.com/udayjadhav/kesh-cursor-mahabharat-agents](https://github.com/udayjadhav/kesh-cursor-mahabharat-agents)
 
 ## Quick start
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/kesh-cursor-kit.git
-cd kesh-cursor-kit
+git clone https://github.com/udayjadhav/kesh-cursor-mahabharat-agents.git
+cd kesh-cursor-mahabharat-agents
 chmod +x install.sh
 ./install.sh
 ```
@@ -25,23 +27,24 @@ Restart Cursor, then in chat:
 
 | Path | Purpose |
 |------|---------|
-| `agents/` | 21 Cursor subagent definitions (YAML frontmatter + prompts) |
-| `rules/` | 12 always-on or contextual `.mdc` rules (canonical spec, router, voice) |
+| `agents/` | 21 Cursor subagent definitions (17 roster + 4 Kesh support modules) |
+| `rules/` | 13 always-on or contextual `.mdc` rules (canonical spec, router, cache, voice) |
 | `skills/xray/` | Deep repository analysis skill |
 | `docs/` | Human-readable workflow, agent roster, install, rules reference |
-| `optional/` | Org-specific templates (e.g. team rosters) |
+| `optional/` | Notes for org-specific customisation (team rosters, Clojure) |
 | `install.sh` | One-command install into `~/.cursor` |
 
 ## Documentation map
 
 | Doc | Contents |
 |-----|----------|
-| [docs/WORKFLOW.md](docs/WORKFLOW.md) | Full 15-step flow, parallel stages, loop-back, emergency override |
+| [docs/WORKFLOW.md](docs/WORKFLOW.md) | Full 15-step flow, cache gate, parallel stages, loop-back, emergency override |
 | [docs/AGENTS.md](docs/AGENTS.md) | Every agent: role, tier, model, when to use |
 | [docs/RULES.md](docs/RULES.md) | Every rule file and what it enforces |
 | [docs/SKILLS.md](docs/SKILLS.md) | Skills (XRay) and how they attach |
 | [docs/INSTALL.md](docs/INSTALL.md) | Install, upgrade, per-repo overrides, troubleshooting |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System layers, invariants, global vs local sync |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in this kit |
 
 **Canonical contract:** `rules/kesh-agent-spec.mdc` — when any file disagrees, the spec wins.
 
@@ -49,7 +52,11 @@ Restart Cursor, then in chat:
 
 ```mermaid
 flowchart TB
-  U[User request] --> P1
+  U[User request] --> EM{Emergency?}
+  EM -->|Yes| ER[Sanjaya + Parth parallel, Bhishma once]
+  EM -->|No| CG[Step 0.5 Cache Gate]
+  CG -->|FULL_HIT| SYN[Reuse cached synthesis]
+  CG -->|PARTIAL / MISS| P1
   subgraph P1 [Phase 1 — Understand]
     V[Vidura] --- S[Sanjaya]
     S --- Y[Vyasa]
@@ -69,6 +76,7 @@ flowchart TB
     L[Lakshman]
     D[Draupadi]
   end
+  P3 -->|Bhishma or Lakshman FAIL| P2
   P3 --> P4
   subgraph P4 [Phase 4 — Gates]
     K[Krishna]
@@ -76,13 +84,15 @@ flowchart TB
     K --> DE[Decision Engine]
     ML --> DE
   end
+  P4 -->|KILL or REJECT or NO-GO| STOP[STOP]
   P4 --> P5
   subgraph P5 [Phase 5 — Final]
-    KR[Kripacharya] --> KE[Kesh SHIP/NO-SHIP]
+    KR[Kripacharya] --> KE[Kesh SHIP / NO-SHIP]
   end
+  SYN --> P5
 ```
 
-Wall-clock: ~5 parallel stages instead of 15 serial steps (~3× faster while using all agents).
+Wall-clock: ~5 parallel stages instead of 15 serial steps (~3× faster while using all applicable agents).
 
 ## Agent roster (summary)
 
@@ -105,6 +115,8 @@ Wall-clock: ~5 parallel stages instead of 15 serial steps (~3× faster while usi
 | Bhishma | C | claude-4-6-sonnet | Code review (FAIL → loop) |
 | Lakshman | C | claude-4-6-sonnet | QA (FAIL → loop) |
 | Draupadi | C | claude-4-6-sonnet | Customer impact |
+
+Support modules (no pinned model — inherit the parent chat): `kesh-flows`, `kesh-context`, `kesh-output`, `kesh-rules`.
 
 **Invariant:** Parth (`composer-2`) and Bhishma (`claude-4-6-sonnet`) must never share the same model.
 
@@ -131,22 +143,10 @@ Resolution: **local overrides global** for that repository. See `rules/global-lo
 
 ## Customization checklist
 
-- [ ] Edit or remove `rules/teams.mdc` (org-specific Jira rosters)
+- [ ] Edit or replace `rules/teams.mdc` with your Jira team rosters (or delete it)
 - [ ] Edit `rules/clojure-*.mdc` if you do not use Clojure
 - [ ] Configure Vyasa MCP / Atlassian if you use org knowledge harvest
 - [ ] Verify model slugs match your Cursor plan ([models docs](https://cursor.com/docs/models-and-pricing))
-
-## Publishing to GitHub
-
-```bash
-cd kesh-cursor-kit
-git init
-git add .
-git commit -m "Initial Kesh Cursor Kit export"
-gh repo create kesh-cursor-kit --private --source=. --push
-```
-
-Replace `YOUR_USERNAME` in clone URL after creating the repo.
 
 ## License
 

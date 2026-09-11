@@ -70,7 +70,17 @@ Before routing, Kesh must answer these questions:
 │  Did user explicitly say: "prod down" / "security breach" /     │
 │                          "data loss" / "fast mode" ?            │
 │  YES → Skip to EMERGENCY OVERRIDE                               │
-│  NO  → Continue canonical 15-step flow (DEFAULT)                │
+│  NO  → Continue to CACHE GATE                                   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   CACHE GATE (Step 0.5)                          │
+│  See ~/.cursor/rules/kesh-token-cache.mdc                        │
+│                                                                  │
+│  Probe: knowledge/cache → session → transcripts → KB → scratch  │
+│  FULL_HIT / PARTIAL_HIT / MISS                                  │
+│  (applicability skip only — never "skip to save money")         │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -81,8 +91,10 @@ Before routing, Kesh must answer these questions:
 │  • What's the subject?                                          │
 │  • What depth?                                                  │
 │  • What perspective?                                            │
+│  • Which agents still need to run after Cache Gate?             │
 │                                                                  │
-│  → Output: list of APPLICABLE agents (default: all 15)          │
+│  → Output: list of APPLICABLE agents (default: all 15;          │
+│    minus agents satisfied by a valid cache hit)                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -213,7 +225,7 @@ Before routing, Kesh must answer these questions:
 | Agent | Expertise | Use When User Needs |
 |-------|-----------|---------------------|
 | **Sanjaya** | Deep repo analysis, architecture, code paths | Understanding how something works, finding where code lives |
-| **Vyasa** | Organisational knowledge harvest — Confluence + Jira + Helpshift helpcenter + developer reference + status page | Pulling org context, dev specs, past discussions, ticket history, customer impacts, customer-facing documentation, public API contracts, past incidents |
+| **Vyasa** | Organisational knowledge harvest — Confluence + Jira + customer helpcenter + developer reference + status page | Pulling org context, dev specs, past discussions, ticket history, customer impacts, customer-facing documentation, public API contracts, past incidents |
 | **Vishwakarma** | System design, patterns, scalability | Design decisions, architecture evaluation, patterns |
 | **Bhishma** | Code review, bugs, security, quality | Finding issues, evaluating code quality |
 | **Lakshman** | QA, testing, edge cases, validation | Test scenarios, what could break, verification |
@@ -330,9 +342,9 @@ Vyasa is the organisational memory of the system. Named after the sage who compi
 |---|--------|----------|---|
 | 1 | Atlassian — Confluence | Internal eng / product | Design intent + decisions |
 | 2 | Atlassian — Jira | Internal eng / product | Ticket history + customer escalations |
-| 3 | Helpshift Helpcenter (`support.helpshift.com`) | External customers | What we **tell** customers the product does |
-| 4 | Helpshift Developer Reference (`developers.helpshift.com`) | External developers | Public API + SDK contracts we are committed to |
-| 5 | Helpshift Status (`status.helpshift.com`) | External + internal | Past incidents + outages |
+| 3 | Customer helpcenter | External customers | What we **tell** customers the product does |
+| 4 | Developer reference | External developers | Public API + SDK contracts we are committed to |
+| 5 | Status page | External + internal | Past incidents + outages |
 
 **Vyasa's Inputs:**
 ```

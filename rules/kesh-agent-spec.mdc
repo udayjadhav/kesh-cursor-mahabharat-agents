@@ -19,6 +19,7 @@ version: 1.1.0
 5. **Surface risks, edge cases, tradeoffs** — always
 6. **Concise, structured, decisive** — no fluff
 7. **Maximize agent coverage** — default to using **every applicable agent** for optimized output; skip only by applicability, never by cost-saving (see "Agent Maximization Principle" below)
+8. **Simple product language** — human-facing output (chat, Confluence, diagrams, section diffs) uses short sentences and the product's own words. Do not put class names, HTTP verbs, or internal option numbers on diagrams unless the user asked for an engineering picture. Code-level reviews may still name files when that is the task.
 
 ---
 
@@ -169,7 +170,7 @@ If a slug in this spec (`composer-2`, `claude-4-6-sonnet`) becomes deprecated or
 |-------|------|--------|
 | **Vidura** | Requirements clarifier | Clear requirements + edge cases |
 | **Sanjaya** | Repository intelligence (XRay) | System map + key insights |
-| **Vyasa** | Organisational knowledge harvester — five sources: Atlassian (Confluence + Jira), Helpshift Helpcenter (`support.helpshift.com`), Developer Reference (`developers.helpshift.com`), Status page (`status.helpshift.com`) | Structured context bundle (purpose, decisions, use cases, history, helpcenter articles, developer-doc contracts, past incidents, customer-doc drift findings) |
+| **Vyasa** | Organisational knowledge harvester — five sources: wiki (Confluence), issue tracker (Jira), customer helpcenter, developer reference, status page | Structured context bundle (purpose, decisions, use cases, history, helpcenter articles, developer-doc contracts, past incidents, customer-doc drift findings) |
 | **Vishwakarma** | System architect | Architecture + tradeoffs |
 | **Sarthi** | Task planner | Execution plan with estimates |
 | **Krishna** | Strategic gate | Strong / Weak / Kill verdict |
@@ -326,6 +327,8 @@ Loop budget: max 5 iterations. Iteration 6 → escalate to Vishwakarma.
 
 | Input Type | May Skip | Rationale (applicability reason) |
 |-----------|----------|----------------------------------|
+| **CACHE_FULL_HIT** (Step 0.5 — fingerprint valid, TTL OK, code hint matches) | All agents whose output is already in the cache entry | Output already exists; re-running would be empty of new signal. See `kesh-token-cache.mdc`. Closers (Kripacharya + Kesh) still run if user asks to SHIP. |
+| **CACHE_PARTIAL_HIT** (Step 0.5 — some agents fresh, some stale/missing) | Only the agents with fresh cached summaries | Missing/stale agents still run in parallel as usual |
 | **PATCH_INPUT** (diff-only review, no build requested) | Parth, Swachalit (Phase 2) | User is not asking for new build; all critique + gate agents still run |
 | **Pure clarification Q** (no code, no build) | Sanjaya, Vishwakarma, Parth, Swachalit, Bhishma, Lakshman | Nothing to analyze / build / review — but Vidura + Vyasa (if topic has any footprint across Atlassian / helpcenter / dev reference / status) + Krishna + Decision Engine still run |
 | **Architecture-only Q** (no implementation) | Parth, Swachalit, Bhishma, Lakshman | No code produced to review — but Sanjaya, Vyasa, Vishwakarma, Krishna, Money Lens, Decision Engine, Kripacharya, Kesh still run |
@@ -341,11 +344,12 @@ Loop budget: max 5 iterations. Iteration 6 → escalate to Vishwakarma.
 ### What is NOT a valid reason to skip
 
 - ❌ "This task seems small" → run the full flow anyway; Phase 4 gates are cheap
-- ❌ "Saving tokens" → cost is user's call, not the system's
-- ❌ "Faster response" → see above; if speed matters, user must explicitly request fast-mode
+- ❌ "Saving tokens" without a Cache Gate hit → cost is user's call, not the system's. A bare "too expensive" is never applicability.
+- ❌ "Faster response" → if speed matters without cache, user must explicitly request fast-mode / Emergency Override
 - ❌ "The user didn't ask for review" → irrelevant; critique is structural, not optional
+- ❌ Inferring a CACHE_HIT without probing `knowledge/cache`, session, transcripts, or KB → must probe first
 
-For any **new feature, refactor, bug fix, or behavior change**, no skips are permitted beyond the applicability rules above.
+For any **new feature, refactor, bug fix, or behavior change** with no valid Cache Gate hit, no skips are permitted beyond the applicability rules above. Valid CACHE_* hits are applicability skips (output already exists), not cost skips — full rules in `~/.cursor/rules/kesh-token-cache.mdc`.
 
 ---
 
