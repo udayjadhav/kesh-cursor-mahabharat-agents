@@ -80,8 +80,8 @@ Phase 1 — UNDERSTAND, Stage 1 (PARALLEL):
 
 | Input | Source | Required | Notes |
 |-------|--------|----------|-------|
-| `topic_query` | User / Kesh / Vidura | **Yes** | Free-text topic or feature name. e.g., "AI Agent stuck bot", "ALP Phase 2 Quick Replies", "2-way SSL implementation". |
-| `scope_filter` | Kesh | Optional | Restrict to specific Atlassian projects/spaces. e.g., `{projects:["HS","CM","REQ"], spaces:["DI","ENT","OPS"]}`. Default: all reachable. |
+| `topic_query` | User / Kesh / Vidura | **Yes** | Free-text topic or feature name. e.g., "agent stuck in a loop", "phase 2 quick replies", "mutual TLS". |
+| `scope_filter` | Kesh | Optional | Restrict to specific Atlassian projects/spaces. e.g., `{projects:["ENG","OPS"], spaces:["ENG","PROD"]}`. Default: all reachable. |
 | `time_window` | Kesh | Optional | ISO range. Default: **last 24 months**. |
 | `depth` | Kesh | Optional | `quick` / `standard` / `deep`. Default: `standard`. |
 
@@ -149,7 +149,7 @@ discussions_and_mentions:
 
 helpcenter_articles:
   - title: <article title>
-    section: <section name e.g. "Consumer Channels", "Administration">
+    section: <section name e.g. "Getting started", "Administration">
     article_type: concept | procedure | guide | faq | troubleshooting
     url: <full https://help.example.com/... URL>
     last_updated_age: <e.g. "108d", or null if not visible>
@@ -313,7 +313,7 @@ https://help.example.com/hc/en/<section-id>-<section-slug>/
 https://help.example.com/hc/en/<section-id>-<section-slug>/<type>/<article-id>-<article-slug>/
 ```
 
-Where `<type>` ∈ `{faq, guide, concepts, procedures, troubleshooting}`. Sections include: Get Started, Administration, Care AI Agent, Service, Self-service, AI and Automation, Service Leadership, App Integrations, Appendices, Consumer Channels, Analytics, Engage, Billing, User Hub.
+Where `<type>` ∈ `{faq, guide, concepts, procedures, troubleshooting}`. Sections are whatever your helpcenter uses (getting started, admin, API, billing, and so on).
 
 #### Developer-reference URL patterns
 
@@ -321,7 +321,7 @@ Where `<type>` ∈ `{faq, guide, concepts, procedures, troubleshooting}`. Sectio
 https://developers.example.com/<sdk-or-area>/<page>/
 ```
 
-Common areas: `sdkx-android`, `sdkx-ios`, `web-chat`, `public-api` (REST), `webhooks`.
+Common areas: `android-sdk`, `ios-sdk`, `web-chat`, `public-api` (REST), `webhooks`.
 
 #### Status URL patterns
 
@@ -408,10 +408,10 @@ Vyasa **MUST run** when:
 
 | Topic | Expected `status` | Expected sources hit | Expected confidence |
 |-------|-------------------|---------------------|--------------------:|
-| "AI Agent stuck bot" | `ok` | Confluence, Jira, helpcenter (Care AI Agent section) | ≥ 75 |
-| "ALP Phase 2 Quick Replies" | `ok` | Confluence, Jira | ≥ 80 |
-| "2-way SSL implementation" | `ok` | Confluence, Jira, dev reference (webhooks) | ≥ 70 |
-| "Associate Issues with App field" | `ok` + `customer_doc_drift` red flag | Confluence, Jira (REQ-2912), helpcenter (Consumer Channels), Sanjaya cross-check | ≥ 80 |
+| "AI agent stuck in a loop" | `ok` | Confluence, Jira, helpcenter | ≥ 75 |
+| "Phase 2 quick replies" | `ok` | Confluence, Jira | ≥ 80 |
+| "Mutual TLS implementation" | `ok` | Confluence, Jira, developer reference (webhooks) | ≥ 70 |
+| "Associate records with app field" | `ok` + `customer_doc_drift` red flag | Confluence, Jira, helpcenter, Sanjaya cross-check | ≥ 80 |
 | "Brand-new R&D not yet documented" | `no_context` | none | ≥ 90 (high confidence in absence) |
 | Whole-product name with no topic (too broad) | `partial` + `red_flags: scope_too_broad` | scoped down | ≤ 40 |
 

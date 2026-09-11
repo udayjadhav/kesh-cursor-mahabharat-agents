@@ -396,14 +396,14 @@ Two categories of consumer to verify:
 
 1. **Same-repo consumers** — storage / index mappings, query allow-lists (e.g., `valid-default-view-props`), view validators, auth filters, formatters, indexers, percolator generators. Each one must either already accept the value (cite the file/line that proves it) or be modified in the same diff.
 
-2. **External-dependency consumers** — any library outside this repo that the signal passes through. Typical examples: search DSL field-spec maps (e.g., `haystack-7.query.genesis/field-spec`), query engine preprocessors, schema registries. For each external library, verify the new value is registered. If the registration must live in another repo, the diff or PR description MUST link the cross-repo PR + a version-bump plan that lands the new dependency version into this repo's manifest.
+2. **External-dependency consumers** — any library outside this repo that the signal passes through. Typical examples: search DSL field-spec maps, query engine preprocessors, schema registries. For each external library, verify the new value is registered. If the registration must live in another repo, the diff or PR description MUST link the cross-repo PR + a version-bump plan that lands the new dependency version into this repo's manifest.
 
 Severity:
 
 - 🔴 **CRITICAL** — external dependency does not accept the new value AND no cross-repo PR is linked. Production will crash on the first real call. Block merge.
 - 🔴 **CRITICAL** — same-repo consumer in the auth / visibility path doesn't accept the value (e.g., a routed issue passes the list filter but issue-detail authorization rejects it). User-visible drift.
 - 🟠 **HIGH** — same-repo consumer (view validator, ES mapping, allow-list) doesn't accept the new value and the diff doesn't add the entry. Will fail on the consumer's first run.
-- 🟠 **HIGH** — cross-repo PR is linked but the version-bump in this repo's manifest is missing, so CI / sbox / prod will still resolve the unpatched artifact.
+- 🟠 **HIGH** — cross-repo PR is linked but the version-bump in this repo's manifest is missing, so CI / sandbox / prod will still resolve the unpatched artifact.
 - 🟡 **MEDIUM** — consumer accepts the value via dynamic / fallback path but explicit registration would be safer (e.g., relying on ES dynamic mapping instead of an explicit field type).
 
 How to verify:

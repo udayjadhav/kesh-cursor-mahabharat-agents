@@ -29,3 +29,4 @@ Synced from live agents/rules (flow, models, cache gate) with org-specific produ
 
 - README, WORKFLOW, AGENTS, RULES, INSTALL, ARCHITECTURE refreshed for cache gate and the renamed clone URL.
 - `rules/teams.mdc` is a blank roster template (fill in your org).
+- Remaining company-specific examples (query-library names, ticket fields, helpcenter sections) replaced with generic wording.

@@ -348,7 +348,7 @@ Vyasa is the organisational memory of the system. Named after the sage who compi
 
 **Vyasa's Inputs:**
 ```
-• topic_query   — free-text topic ("AI Agent stuck bot", "ALP Phase 2", ...)
+• topic_query   — free-text topic ("agent stuck in a loop", "phase 2 quick replies", ...)
 • scope_filter  — optional Jira projects / Confluence spaces / source restrictions
 • time_window   — default last 24 months
 • depth         — quick / standard / deep

@@ -92,8 +92,8 @@ The inventory is a per-entity table:
 
 | Entity.field | Defspec location (file:line) | Set by (file:line) | Trust level | When populated | When nil | Signal it carries |
 |---|---|---|---|---|---|---|
-| `Issue.app_id` | `structs.clj:4658` | `models/issue.clj:2200` | server-set | always at create | never | the platform's app id (built-in for email/web) |
-| `Issue.meta.user_reported_app_id` | `structs.clj:4710` | `incoming_email/.../util.clj:375` (server) AND `sdk/.../bridge.clj:142` (client) | mixed (server for email; client for SDK) | when matched-sch has `:app_id` set OR SDK reports it | unmatched / unconfigured | the customer-app id from the matched supportchannel (email path) or the SDK-reported app (SDK path) |
+| `Record.owner_id` | `models/record.ts:120` | `createRecord.ts:88` | server-set | always at create | never | the platform owner id |
+| `Record.meta.reported_owner_id` | `models/record.ts:140` | `ingest.ts:210` (server) AND `sdk/bridge.ts:40` (client) | mixed (server for email ingest; client for SDK) | when the matched channel has an owner id, or the SDK reports one | unmatched / unconfigured | the customer-reported owner id |
 | ... | ... | ... | ... | ... | ... | ... |
 
 Trust level taxonomy:
@@ -127,7 +127,7 @@ Per the Consumer Audit section of `~/.cursor/rules/reuse-before-extend.mdc`, the
 
 ### When this inventory is required
 
-- Any task that adds a new `:prop` value used in smart-view / advsearch / automation / NIA filter DSL
+- Any task that adds a new filter / query property used in saved searches, automation, or an external query DSL
 - Any task that adds a new field to an event / Kafka message / webhook payload
 - Any task that adds a new API request / response field consumed by an SDK or external service
 - Any task that uses `:meta.*` or other previously-unused entity fields in a query

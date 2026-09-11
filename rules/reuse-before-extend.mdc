@@ -9,9 +9,9 @@ alwaysApply: true
 
 ## The failure pattern this rule prevents
 
-When a multi-agent flow generates architectural options for a routing / lookup / association problem, it tends to **anchor on the most-obvious key** (e.g., `Issue.app_id` for routing) and generate options that all add new schema, new link types, or new admin UX. The cheaper alternative — using a field that already carries the signal but lives elsewhere on the data model — is missed because no agent in the flow is responsible for proposing it.
+When a multi-agent flow generates architectural options for a routing / lookup / association problem, it tends to **anchor on the most-obvious key** (for example the primary foreign key on the record) and generate options that all add new schema, new link types, or new admin UX. The cheaper alternative — using a field that already carries the signal but lives elsewhere on the data model — is missed because no agent in the flow is responsible for proposing it.
 
-This is a real regression class. The canonical failure case is documented in `.cursor/scratch/req-2912-investigation-supportchannel-app-id-flow.md` (Sections 1-4) — the email-CWZ spec at `.cursor/scratch/email-cwz-spec-v3.md` proposed a new link type `"supportchannels"` in `workzones_entity_mapping` for routing email Issues to custom workzones, while `Issue.meta.user_reported_app_id` already carried the customer-app id captured server-side from the matched supportchannel. The cheaper realisation was to route the existing app→workzone lookup through the meta field. None of the agents (Sanjaya / Vishwakarma / Krishna / Bhishma) caught this.
+This is a real regression class. A typical miss: a spec adds a new mapping-table row type to route records, while an existing metadata field on the record already holds the same id. Routing through the existing field would have been enough. None of the agents (Sanjaya / Vishwakarma / Krishna / Bhishma) caught it.
 
 ## Mandatory checks (per agent)
 
@@ -54,7 +54,7 @@ For any task that emits new values into a query, filter, event, or payload that 
 
 The reuse audit covers **producers** (the writers of the signal). It does NOT automatically cover **consumers** (readers, indexers, query layers, view validators, formatters, external libraries that operate on the signal). A reuse-only design fails in production when a downstream consumer doesn't accept the reused field — even though every producer is correct.
 
-This is the second canonical failure pattern. The email-CWZ Option 0 reused `:meta.user_reported_app_id` and updated the producers + the workzone resolver correctly. It missed that the smart-view filter compiler in the external `haystack` library didn't know the field. The filter compiled fine in unit tests (which stubbed the boundary) and crashed in production at `haystack-7.query.engine/es-pre-processor` on the first real call.
+This is the second canonical failure pattern. A reuse-only design updated producers and the resolver correctly. It missed that an external query library did not know the reused field. The filter compiled fine in unit tests (which stubbed the boundary) and crashed in production on the first real call.
 
 ### What to enumerate
 
@@ -63,14 +63,14 @@ Before approving any reuse-only spec, enumerate every consumer that must accept 
 | Consumer category | Examples |
 |---|---|
 | Storage / index mapping | Elasticsearch field mappings, MongoDB indexes, Postgres columns |
-| Query DSL registries (incl. external deps) | `haystack.field-spec`, Chanakya rule specs, search DSL allow-lists, advsearch glossary |
-| View / display-filter validation | `valid-default-view-props`, view-coercion whitelists, smartview compile path |
-| Permission / visibility / auth checks | role-based filters, workzone-scope checks, issue-detail authorization |
+| Query DSL registries (incl. external deps) | field-spec maps, rule specs, search DSL allow-lists |
+| View / display-filter validation | default-view props, view-coercion allow-lists, saved-search compile path |
+| Permission / visibility / auth checks | role-based filters, scope checks, detail-page authorization |
 | Read-time formatters / serializers | API response formatters, JSON renderers, audit-trail formatters |
-| Indexers / percolator generators | smartview percolators, automation indexes, search async-update pipelines |
-| Analytics / event pipelines | Niati / event emitters that pivot on the field |
+| Indexers / percolator generators | saved-search percolators, automation indexes, search async-update pipelines |
+| Analytics / event pipelines | analytics / event emitters that pivot on the field |
 | Downstream services / webhooks / Kafka topics | anything that re-emits the signal off-process |
-| External SDKs / clients | mobile SDK, web SDK, hs-api clients, third-party integrations |
+| External SDKs / clients | mobile SDK, web SDK, public API clients, third-party integrations |
 
 For each consumer that is in scope for the task, mark exactly one:
 - ✅ **Already accepts** — cite the file/line that proves it
@@ -82,9 +82,9 @@ For each consumer that is in scope for the task, mark exactly one:
 When a consumer lives **outside the current repo** — an external library jar, another service, another team's repo — the spec MUST:
 
 1. Name the external repo / artifact explicitly (e.g., `org/query-dsl`)
-2. State the contract surface that needs to change (e.g., `haystack-7.query.genesis/field-spec`)
+2. State the contract surface that needs to change (e.g., the library's field-spec / allow-list map)
 3. Plan the cross-repo PR sequence: external repo first → publish new artifact version → bump version in current repo's manifest
-4. List the version coordinates that need to change (`project.clj`, `package.json`, `go.mod`, etc.) so the bumped dep actually reaches CI / sbox / prod
+4. List the version coordinates that need to change (`project.clj`, `package.json`, `go.mod`, etc.) so the bumped dep actually reaches CI / sandbox / prod
 
 A spec that lists only same-repo changes when an external contract is involved is **incomplete**. The same applies to PRs — a PR diff that touches a producer but not the linked external consumer is incomplete.
 
@@ -114,7 +114,7 @@ If you cannot trace the full chain because a transform is in an external jar you
 ## What "reuse" specifically means here
 
 - **Reuse a field:** the data is already captured on an existing entity. Read it from there; do not re-capture under a new name.
-- **Reuse a link type:** the polymorphic mapping table (e.g., `workzones_entity_mapping`) already supports the entity type you need. Add a row with the existing type; do not register a new type.
+- **Reuse a link type:** the polymorphic mapping table already supports the entity type you need. Add a row with the existing type; do not register a new type.
 - **Reuse an index:** the existing index on the source entity supports the query you need. Use it; do not add a parallel index.
 - **Reuse a code path:** an existing resolver / handler / pipeline already does the lookup you need. Extend it with a fallback branch; do not write a parallel resolver.
 
@@ -137,10 +137,10 @@ A spec missing any of these is incomplete. Reviewers should request the missing 
 
 ## Why this rule exists
 
-Multi-agent systems with strong "design new architecture" agents default to additive proposals. The cheapest answer — *"the field is already on the Issue, just on a different name"* — gets lost because no single agent is incentivised to surface it. This rule names the failure pattern, assigns ownership for each prevention check, and makes the absence of a reuse-only option a structural defect (not an oversight).
+Multi-agent systems with strong "design new architecture" agents default to additive proposals. The cheapest answer — *"the field is already on the record, just on a different name"* — gets lost because no single agent is incentivised to surface it. This rule names the failure pattern, assigns ownership for each prevention check, and makes the absence of a reuse-only option a structural defect (not an oversight).
 
 The Consumer Audit half of this rule exists for the symmetric failure: once the reuse-only design is chosen, the multi-agent flow audits producers but typically skips downstream consumers (especially those in external libraries / other repos). The result is a design that looks complete on paper, passes unit tests that stub the boundary, and crashes in production on the first real call.
 
 Cost of getting this wrong:
-- Missing the reuse-only option: email-CWZ Option A sized at 26-40 working days vs Option 0 at plausibly 5-8 days — costs 3-4 weeks of engineering time per affected spec.
-- Missing the consumer audit: the email-CWZ Option 0 implementation passed local checks and crashed on the first sbox call with `Unable to walk hierarchical query` — a production hotfix that should have been part of the original design, plus a cross-repo PR sequence that wasn't planned for.
+- Missing the reuse-only option: a composing design sized at weeks vs reuse-only at days — often 3–4 extra weeks of engineering time per affected spec.
+- Missing the consumer audit: the reuse-only implementation passed local checks and crashed on the first real call — a production hotfix that should have been part of the original design, plus a cross-repo PR sequence that wasn't planned for.

@@ -68,7 +68,7 @@ These phrases (and close variants) MUST NOT appear in the body of any spec / des
 
 ## DO
 
-- Write decisions as the engineer-author's own decisions: "Issue carries `supportchannel_id`. Mapping table stays admin-config-shaped." NOT "We decided to put `supportchannel_id` on Issue after the user pushed back on per-issue mapping rows."
+- Write decisions as the engineer-author's own decisions: "Record carries `channel_id`. Mapping table stays admin-config-shaped." NOT "We decided to put `channel_id` on Record after the user pushed back on per-record mapping rows."
 - Justify with rationale that stands on its own merits: "Issue is the highest-volume entity; per-issue writes into a shared admin-config table treat operational data as if it were configuration." NOT "We agreed this was the wrong shape after re-evaluating the tradeoffs."
 - Use first-person plural "we" only when referring to the engineering team / the company, never when referring to the author and an external reviewer / assistant. When in doubt, switch to passive or third-person.
 - Prefer direct active voice. "X writes Y when Z." NOT "X is going to write Y based on what we agreed."
@@ -98,19 +98,19 @@ The first draft of this spec proposed writing one mapping row per email-issue cr
 ```markdown
 ## 8. Storage Trade-off and Decision
 
-Issues are the highest-volume entity in the product. Any storage choice that materializes per-issue has to be evaluated against that volume. Per-issue writes into `workzones_entity_mapping` would treat a shared admin-config table as operational storage — at message volume rather than admin-action volume — and the table is sized for the latter, not the former.
+Tickets are the highest-volume entity in the product. Any storage choice that materializes per-ticket has to be evaluated against that volume. Per-ticket writes into a shared admin-config mapping table would treat configuration storage as operational storage — at message volume rather than admin-action volume — and the table is sized for the latter, not the former.
 ```
 
 ❌ Bad:
 
 ```markdown
-We decided to add `supportchannel_id` to the Issue defspec after considering four options with the user. We agreed this is the right approach.
+We decided to add `channel_id` to the Ticket defspec after considering four options with the user. We agreed this is the right approach.
 ```
 
 ✅ Good:
 
 ```markdown
-Issue carries `supportchannel_id`. Three alternatives (per-issue mapping rows; `workzone_id` directly on Issue; hybrid sch+wz columns) were rejected — per-issue mapping rows for shape mismatch, schema-first migration for ES re-index cost, hybrid for redundancy.
+Ticket carries `channel_id`. Three alternatives (per-ticket mapping rows; `queue_id` directly on Ticket; hybrid channel+queue columns) were rejected — per-ticket mapping rows for shape mismatch, schema-first migration for search re-index cost, hybrid for redundancy.
 ```
 
 ## Self-check before publishing

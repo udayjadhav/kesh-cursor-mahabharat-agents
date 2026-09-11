@@ -17,7 +17,7 @@ This rule applies whenever a doc qualifies as a "spec-shaped" deliverable. Spec 
 
 - Filename matches: `*-spec*.md`, `*spec*.mdc`, `dev-spec-*.md`, files under `specs/` or `docs/specs/`.
 - Heading anywhere on the page: `Scoping`, `Estimation`, `Effort`, `Task Breakdown`, `Implementation Plan`, `Phases`, `Timeline`, `Tasks`.
-- Confluence page in spaces `ENTP`, `PMS`, `PLAT`, `FTY`, `SE`, `OPS` matching titles like "Dev Spec", "Design Doc", "Impact Analysis", "Architecture Review".
+- Confluence pages matching titles like "Dev Spec", "Design Doc", "Impact Analysis", "Architecture Review".
 - Document with sections matching: "Goals & Non-Goals", "Proposed Design", "Schema Deltas", "Code Changes", "Risks", "Rollout & Rollback", "Open Questions".
 - Branch / PR titled `feature/*` with attached design doc.
 
