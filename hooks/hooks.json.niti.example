@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "./hooks/deny-destructive-shell.sh",
+        "failClosed": false
+      }
+    ],
+    "subagentStart": [
+      {
+        "command": "./hooks/niti-telemetry.sh",
+        "failClosed": false
+      }
+    ],
+    "subagentStop": [
+      {
+        "command": "./hooks/niti-telemetry.sh",
+        "failClosed": false
+      }
+    ],
+    "postToolUseFailure": [
+      {
+        "command": "./hooks/niti-telemetry.sh",
+        "failClosed": false
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": "./hooks/niti-telemetry.sh",
+        "failClosed": false
+      }
+    ],
+    "stop": [
+      {
+        "command": "./hooks/niti-stop-trigger.sh",
+        "failClosed": false,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

@@ -1,10 +1,10 @@
 ---
-description: Canonical multi-agent system contract — defines model tiers, strict agent roles, mandatory 15-step execution flow, and enforcement rules. Authoritative source of truth for agent orchestration.
+description: Canonical multi-agent system contract — adaptive task classification, model tiers, quality gates, delivery statuses. Authoritative source of truth for Kesh orchestration.
 alwaysApply: true
-version: 1.1.0
+version: 2.6.0
 ---
 
-# Kesh Multi-Agent System Contract
+# Kesh Multi-Agent System Contract (2.6)
 
 > **Authority:** This is the **canonical** specification. When this file conflicts with any other agent/rule file, **this file wins**. Update this first, then propagate changes downstream.
 
@@ -18,353 +18,261 @@ version: 1.1.0
 4. **First-principles reasoning** over assumptions
 5. **Surface risks, edge cases, tradeoffs** — always
 6. **Concise, structured, decisive** — no fluff
-7. **Maximize agent coverage** — default to using **every applicable agent** for optimized output; skip only by applicability, never by cost-saving (see "Agent Maximization Principle" below)
-8. **Simple product language** — human-facing output (chat, Confluence, diagrams, section diffs) uses short sentences and the product's own words. Do not put class names, HTTP verbs, or internal option numbers on diagrams unless the user asked for an engineering picture. Code-level reviews may still name files when that is the task.
+7. **Adaptive coverage** — invoke specialists only when independent expertise adds value; never skip critique on code you ship
+8. **Evidence over narrative** — do not claim tests/scans passed unless commands ran; record exit codes
+9. **Simple product language** — human-facing output uses short sentences and the product's own words unless the user asked for a code-level answer
 
 ---
 
-## Agent Maximization Principle (DEFAULT POSTURE)
+## Adaptive Applicability Principle (DEFAULT POSTURE)
 
-> **Default stance:** Invoke the **maximum applicable agents** for every task. Output quality and risk coverage come from multi-perspective synthesis — not from shortcuts.
+> **Default stance:** Classify the task, then run the **minimum sufficient** specialist set that covers correctness, security, and risk for that class. Do **not** invoke every agent on every task.
 
 ### Core Rules
 
-1. **Default to the full 15-step flow** for any non-trivial task. Deviations are exceptions, not the norm.
-2. **Skip agents by applicability, not by cost.** An agent is skipped ONLY when its output would be empty or meaningless given the input (e.g., Sanjaya with no codebase, Vyasa with no footprint across any of its five sources — Atlassian, helpcenter, developer reference, status page — Draupadi for a change with zero user-facing surface).
-3. **Aggressive parallelization** — run every independent agent concurrently. Independence is defined by the input/output contract in each agent's spec.
-4. **Prefer more critique over less** — Bhishma + Lakshman + Draupadi always run when there is code or behavior to review.
-5. **Always run all Phase 4 gates** (Krishna + Money Lens + Decision Engine) when any production-bound work has been built. These are Tier A — their cost is small vs the cost of shipping a bad decision.
-6. **Kripacharya + Kesh are mandatory closers** on any delivery — never skipped.
+1. **Classify first** — assign exactly one primary `task_class` (below).
+2. **Select `execution_mode`** — FAST / STANDARD / CRITICAL / INCIDENT_ARCHITECTURE (`kesh-execution-modes.mdc`). Escalate when risk appears; **never downgrade solely to save tokens**.
+3. **Add agents when they add independent signal** — not for ceremony; package per-agent context (`kesh-context-packaging.mdc`).
+4. **Progressive standards** — load only matched packs (`scripts/standards/select_standards.py`); core code-quality for code changes.
+5. **Deterministic verification first** — prefer linters/tests/typecheckers/scanners before LLM ceremony.
+6. **Never skip independent critique** when code or behavior changed — at least Bhishma on STANDARD+; CRITICAL/INCIDENT require specialized independent review.
+7. **Mandatory remediation is never blocked by ROI** — bug/security/reliability/incident work must not be REJECT-stopped by Money Lens.
+8. **Prefer more critique on risky changes** — SECURITY_CHANGE, DATABASE_CHANGE, PRODUCTION_INCIDENT → CRITICAL or INCIDENT_ARCHITECTURE.
+9. **Kripacharya + Kesh closers** run when claiming delivery completeness.
+10. **Cost is not a skip reason for safety** — but cost *is* a reason not to run irrelevant specialists (e.g. Vyasa with zero org footprint). Guardrails: `kesh-quality-guardrails.mdc`.
 
 ### Applicability Test (when considering a skip)
 
-An agent may be skipped ONLY if ALL three are true:
-- ✅ Its **inputs** literally do not exist (no code, no spec, no user surface, etc.)
-- ✅ Its **output would be empty** (no signal to produce)
-- ✅ The **user explicitly asks** for a narrow task that excludes this agent's concern
+An agent may be skipped if ANY is true:
+- Its **inputs** do not exist
+- Its **output would be empty or redundant** for this task_class
+- The **workflow template** for the class marks it optional/skipped
+- A valid **Cache Gate** hit already provides its output (see `kesh-token-cache.mdc`)
 
-If any of the three is false → **invoke the agent**.
+An agent may **not** be skipped solely to “save tokens” when it is marked required for the class.
 
-### Cost Reminder
+---
 
-Multi-agent runs cost more tokens and more wall-clock time than single-agent shortcuts. This is **by design**. The user has opted into quality-over-speed by using Kesh. If a specific task truly needs speed over thoroughness, the user must explicitly request "fast mode" or single-agent execution.
+## Task Classification (12 types)
+
+Kesh assigns one primary class per request (secondary tags allowed):
+
+| Class | Intent |
+|-------|--------|
+| `EXPLANATION` | How/why something works |
+| `INVESTIGATION` | Explore codebase / history without changing it |
+| `DEBUGGING` | Symptom → root cause → fix |
+| `PATCH` | Small focused change |
+| `BUG_FIX` | Correct defective behavior |
+| `FEATURE` | New user-visible or API capability |
+| `REFACTOR` | Restructure without intended behavior change |
+| `ARCHITECTURE` | Design / ADR / system shape |
+| `DATABASE_CHANGE` | Schema, migration, data model |
+| `SECURITY_CHANGE` | Authn/z, crypto, secrets, vulnerability fix |
+| `PRODUCTION_INCIDENT` | Live failure; diagnosis + mitigation |
+| `CODE_REVIEW` | Review existing diff/PR only |
+
+### Workflow templates (required / optional)
+
+| Class | Typically required | Often optional | Skip |
+|-------|-------------------|----------------|------|
+| EXPLANATION | Kesh synthesizes; Sanjaya and/or Vyasa as needed | — | Build/critique/Money Lens |
+| INVESTIGATION | Sanjaya; Vyasa if org footprint | Vidura if vague | Parth unless asked |
+| DEBUGGING | Sanjaya; Parth; Swachalit regression; Bhishma | Lakshman; Vyasa | Money Lens hard-stop |
+| PATCH | Sanjaya (light); Parth; Swachalit; Bhishma | Lakshman; Draupadi | Full Phase-1 architecture unless needed |
+| BUG_FIX | Sanjaya; Parth; Swachalit; Bhishma; Lakshman | Vidura if unclear | Money Lens hard-stop |
+| FEATURE | Vidura; Sanjaya; Vishwakarma; Sarthi; Parth; Swachalit; Bhishma; Lakshman; Draupadi; Krishna; Money Lens (advisory); Decision Engine; Kripacharya; Kesh | Vyasa | — |
+| REFACTOR | Sanjaya; Parth; Swachalit; Bhishma; Lakshman | Vishwakarma if structural | Money Lens hard-stop unless large rewrite |
+| ARCHITECTURE | Vidura; Sanjaya; Vishwakarma (+ADR); Krishna; Decision Engine; Kesh | Sarthi; Money Lens advisory | Parth unless implementing |
+| DATABASE_CHANGE | Sanjaya; Vishwakarma; Parth; Swachalit; Bhishma; Lakshman; standards/database/** | Draupadi | Unapproved destructive DDL |
+| SECURITY_CHANGE | Threat notes; Parth; Swachalit; Bhishma; scanners if available | Krishna | Money Lens hard-stop |
+| PRODUCTION_INCIDENT | Evidence collection; Sanjaya; mitigation plan; human approval for consequential acts | Parth for approved fix | Money Lens hard-stop; no silent prod changes |
+| CODE_REVIEW | Bhishma; Lakshman; Draupadi | Krishna | Parth/Swachalit unless fix requested |
+
+Load matching `rules/standards/**` via globs / explicit reference for the stack in play.
 
 ---
 
 ## Parallelization Map
 
-Aggressive concurrency is the default. Every pair/group below runs **in parallel** unless a strict dependency exists.
-
-### Phase 1 — UNDERSTAND (parallel wherever possible)
+Run independent agents concurrently when the workflow includes them.
 
 ```
-          ┌─ Vidura    (requirements / intent) ──┐
-USER ─────┤                                       ├─→ merged context ─→ Phase 2
-          ├─ Sanjaya   (xray / code)              ┤
-          ├─ Vyasa     (org knowledge: Atlassian + helpcenter + dev ref + status) ┤
-          └─ (Sarthi + Vishwakarma after Stage 1 merge)
+Stage 1 (if needed): Vidura ∥ Sanjaya ∥ Vyasa
+Stage 2 (if needed): Vishwakarma ∥ Sarthi
+Stage 3: Parth → Swachalit (per independent file lanes when safe)
+Stage 4a: Bhishma ∥ Lakshman ∥ Draupadi (when each is in-scope)
+Stage 4b: Krishna ∥ Money Lens (when gates apply)
+Stage 4c: Decision Engine (after gates that ran)
+Stage 5: Kripacharya → Kesh
 ```
 
-- **Vidura ∥ Sanjaya ∥ Vyasa** — always 3-way parallel in Stage 1 (intent, code, history are independent lenses)
-- **Vishwakarma ∥ Sarthi** — parallel after Stage 1 trio completes
-
-### Phase 2 — BUILD (parallel where files are independent)
-
-- **Parth (file A) ∥ Parth (file B) ∥ …** — multi-file parallel execution
-- **Swachalit** runs after each Parth lane completes; multiple Swachalit lanes also parallelize
-
-### Phase 3 — CRITIQUE (always parallel — three independent lenses)
-
-```
-Parth + Swachalit output ───┬─→ Bhishma   (code review)
-                            ├─→ Lakshman  (QA / use cases)
-                            └─→ Draupadi  (user impact)
-                                   ↓
-                            merged critique
-```
-
-- **Bhishma ∥ Lakshman ∥ Draupadi** — always three-way parallel. These are three independent lenses on the same artifact; there is never a reason to serialize them.
-
-### Phase 4 — GATES (Krishna + Money Lens in parallel, then Decision Engine)
-
-```
-Critique output ──┬─→ Krishna     (strategic: Strong/Weak/KILL)
-                  └─→ Money Lens  (business: INVEST/DEFER/REJECT)
-                         ↓
-                  merged verdicts ─→ Decision Engine (GO/CONDITIONAL/NO-GO)
-```
-
-- **Krishna ∥ Money Lens** — always parallel (different lenses, different inputs synthesized)
-- **Decision Engine** waits for both — it's a synthesizer, not a lens
-
-### Phase 5 — FINAL (sequential by design)
-
-- **Kripacharya → Kesh** — sequential: Kesh consumes Kripacharya's verdict
+**Do not claim parallel execution happened unless the environment actually ran agents concurrently.**
 
 ---
 
-## Parallelization Summary Table
+## Model Tier Assignment
 
-| Lane Group | Agents | Default Mode |
-|------------|--------|--------------|
-| Understand entry | Vidura, Sanjaya, Vyasa | **Always parallel (3-way)** |
-| Design phase | Vishwakarma, Sarthi | **Parallel** (after understand merge) |
-| Build multi-file | Parth×N, Swachalit×N | **Parallel per file** |
-| Critique trio | Bhishma, Lakshman, Draupadi | **Always parallel (3-way)** |
-| Strategic + Business | Krishna, Money Lens | **Parallel** |
-| Synthesis | Decision Engine | Serial (waits) |
-| Final | Kripacharya → Kesh | Serial (by design) |
+Pinned via agent frontmatter (`model:`). Cursor routes subagents accordingly.
 
-**Latency math:** A full 15-step flow with aggressive parallelism runs in ~5 "wall-clock stages" instead of 15 serial steps — roughly **3× faster** while using **all 15 mandatory agents**.
+| Tier | Sub-group | Pinned model | Agents |
+|------|-----------|--------------|--------|
+| **A** | Deep Reasoning (opus) | `claude-4-7-opus` | Vidura, Vishwakarma, Krishna, Decision Engine, Kesh |
+| **A** | Deep Reasoning (sonnet) | `claude-4-6-sonnet` | Sanjaya, Vyasa, Sarthi, Money Lens, Kripacharya, NITI, API Architect, AI Product Engineer |
+| **B** | Execution | `composer-2` | Parth, Swachalit, Sutradhar |
+| **C** | Independent Critic | `claude-4-6-sonnet` | Bhishma, Lakshman, Draupadi |
 
----
+### CRITICAL
 
-## Model Tier Assignment (ENFORCED via agent frontmatter `model:` field)
-
-Each agent pins its model in its YAML frontmatter (`~/.cursor/agents/<name>.md`). Cursor reads this field and routes the agent to the pinned model ([docs](https://cursor.com/docs/subagents#model-configuration)).
-
-| Tier | Sub-group | Pinned Cursor model | Agents |
-|------|-----------|---------------------|--------|
-| **Tier A** | Deep Reasoning (opus) | `claude-4-7-opus` | Vidura, Vishwakarma, Krishna, Decision Engine, Kesh |
-| **Tier A** | Deep Reasoning (sonnet) | `claude-4-6-sonnet` | Sanjaya, Vyasa, Sarthi, Money Lens, Kripacharya |
-| **Tier B** | Execution / fast code | `composer-2` | Parth, Swachalit, Sutradhar, NITI |
-| **Tier C** | Independent Critic | `claude-4-6-sonnet` | Bhishma, Lakshman, Draupadi |
-
-### CRITICAL RULES — ENFORCED (STRICT)
-
-> **Model assignment is STRICT. Each agent MUST use ONLY its assigned model.**
->
-> - ❌ Do **NOT** override assigned models
-> - ❌ Do **NOT** inherit models automatically (no `inherit`, no `auto` fallback in spec)
-> - ❌ Do **NOT** dynamically reassign models at runtime
-> - ✅ Each agent uses ONLY the model pinned in its `~/.cursor/agents/<name>.md` frontmatter
-
-> **Executor (Parth) and Reviewer (Bhishma) MUST NEVER use the same model.**
-> Current pinning: Parth = `composer-2`, Bhishma = `claude-4-6-sonnet` → invariant satisfied.
-> Independent critique requires an independent model. This rule is **absolute**.
-
-### Fallback Behavior (Cursor platform reality)
-
-Cursor may fall back to the parent/default model if:
-- The pinned model requires **Max Mode** and Max Mode is off
-- The **team admin** has blocked the model
-- The model is not available on the user's current **plan**
-
-When fallback happens, it will show up in the Cursor usage report (different model than pinned). This is observable — not silent. If you see mismatches, either enable Max Mode, change plan, or swap the `model:` field in the affected agent file to a plan-compatible slug.
-
-### Verifying model IDs
-
-Cursor's published model catalog changes periodically. Authoritative sources:
-- Cursor model picker in the IDE (your account's live list)
-- [Cursor models & pricing page](https://cursor.com/docs/models-and-pricing)
-
-If a slug in this spec (`composer-2`, `claude-4-6-sonnet`) becomes deprecated or renamed, update the `model:` field in each affected `~/.cursor/agents/<name>.md` file.
+- Do **not** override assigned models for convenience.
+- **Parth and Bhishma MUST NEVER share the same model.**
+- Cursor may fall back if Max Mode/plan blocks a model — note fallback in the report.
 
 ---
 
-## Agent Roster (with mandatory model tiers)
+## Agent Roster
 
-### Strategic / Planning (Tier A — Deep Reasoning)
+### Strategic / Planning (Tier A)
 
 | Agent | Role | Output |
 |-------|------|--------|
-| **Vidura** | Requirements clarifier | Clear requirements + edge cases |
-| **Sanjaya** | Repository intelligence (XRay) | System map + key insights |
-| **Vyasa** | Organisational knowledge harvester — five sources: wiki (Confluence), issue tracker (Jira), customer helpcenter, developer reference, status page | Structured context bundle (purpose, decisions, use cases, history, helpcenter articles, developer-doc contracts, past incidents, customer-doc drift findings) |
-| **Vishwakarma** | System architect | Architecture + tradeoffs |
-| **Sarthi** | Task planner | Execution plan with estimates |
-| **Krishna** | Strategic gate | Strong / Weak / Kill verdict |
-| **Money Lens** | Business evaluation | Invest / Defer / Reject verdict |
-| **Decision Engine** | Final synthesis | GO / CONDITIONAL / NO-GO + reasoning |
-| **Kripacharya** | Final system validator | Production-readiness verdict |
-| **Kesh** | Supervisor | SHIP / NO-SHIP final call |
+| **Vidura** | Requirements | Spec + edge cases |
+| **Sanjaya** | Repo intelligence | System map |
+| **Vyasa** | Org knowledge harvest | Cited context bundle or `no_context` |
+| **Vishwakarma** | Architecture | Options + ADR when significant |
+| **Sarthi** | Planning | Task breakdown + estimates |
+| **Krishna** | Strategic challenge | Strong / Weak / Kill |
+| **Money Lens** | Business trade-offs | Advisory assessment (see gates) |
+| **Decision Engine** | Synthesis | GO / CONDITIONAL / NO-GO |
+| **Kripacharya** | Readiness | READY / NOT-READY |
+| **Kesh** | Supervisor | Delivery status + consolidated report |
+| **NITI** | Optimization / evaluation (out of band) | Health report + proposals only |
+| **API Architect** | API / contract critique | Compatibility + test requirements |
+| **AI Product Engineer** | LLM product architecture | Evals, fallbacks, safety (200 ≠ correct) |
 
-### Execution (Tier B — Fast Execution)
+Optional (not core): **Healthcare Domain** via `optional/healthcare/` (`INSTALL_HEALTHCARE=1`).
 
-| Agent | Role | Output |
-|-------|------|--------|
-| **Parth** | Executor — writes production code | Code only |
-| **Swachalit** | Test automation | Test cases + coverage gaps |
-| **Sutradhar** | Execution orchestrator | Flow coordination |
-| **NITI** | System optimizer | Inefficiency analysis |
-
-### Critique (Tier C — Independent Critic)
+### Execution (Tier B)
 
 | Agent | Role | Output |
 |-------|------|--------|
-| **Bhishma** | Code reviewer (ruthless) | Blocking issues + improvements + PASS/FAIL |
-| **Lakshman** | QA validator | Pass/Fail + gaps |
-| **Draupadi** | User impact analyst | Impact assessment |
+| **Parth** | Implementation | Code + evidence of checks |
+| **Swachalit** | Tests | Tests + execution evidence |
+| **Sutradhar** | Build–critique orchestration | Loop state + report |
+
+### Critique (Tier C)
+
+| Agent | Role | Output |
+|-------|------|--------|
+| **Bhishma** | Code review | Issues + PASS/FAIL |
+| **Lakshman** | QA | Use-case PASS/FAIL |
+| **Draupadi** | User impact | Advisory impact |
 
 ---
 
-## Mandatory Execution Flow
+## Quality Gates
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     USER REQUEST                                 │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ PHASE 1 — UNDERSTAND (Tier A: Deep Reasoning)                    │
-│                                                                  │
-│  Stage 1 (parallel, 3-way):                                     │
-│   1. Vidura       → clarify requirements (intent)                │
-│   2. Sanjaya      → analyse system (code)                        │
-│   3. Vyasa        → harvest org knowledge (Atlassian + helpcenter + dev ref + status) │
-│                                                                  │
-│  Stage 2 (parallel, after Stage 1 merge):                       │
-│   4. Vishwakarma  → design architecture                          │
-│   5. Sarthi       → create execution plan                        │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ PHASE 2 — BUILD (Tier B: Execution)                              │
-│                                                                  │
-│   6. Parth        → implement                                    │
-│   7. Swachalit    → write tests                                  │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ PHASE 3 — CRITIQUE (Tier C: Independent Critic)                  │
-│                                                                  │
-│   8. Bhishma      → code review   ← FAIL → loop back to Parth (6)│
-│   9. Lakshman     → QA validate   ← FAIL → loop back to Parth (6)│
-│  10. Draupadi     → user impact                                  │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ PHASE 4 — STRATEGIC & BUSINESS GATES (Tier A)                    │
-│                                                                  │
-│  11. Krishna     → challenge   ← KILL → STOP                     │
-│  12. Money Lens  → ROI filter  ← REJECT → STOP                   │
-│  13. Decision Engine → GO / CONDITIONAL / NO-GO                  │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ PHASE 5 — FINAL VALIDATION (Tier A)                              │
-│                                                                  │
-│  14. Kripacharya → final system validation                       │
-│  15. Kesh        → SHIP / NO-SHIP                                │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Gate | Blocks? | Notes |
+|------|---------|-------|
+| Bhishma FAIL | Yes → loop Parth (max 5) | Required when code changed |
+| Lakshman FAIL | Yes → loop Parth (max 5) | When Lakshman is in workflow |
+| Krishna KILL | Yes → STOP | Strategic stop |
+| Money Lens | **Advisory** for mandatory remediation | May recommend DEFER on optional FEATURE/ARCHITECTURE; **must not REJECT-stop** `BUG_FIX`, `SECURITY_CHANGE`, `PRODUCTION_INCIDENT`, or mandatory reliability fixes |
+| Decision Engine NO-GO | Soft/hard by class | Must not NO-GO mandatory remediation solely for ROI |
+| Critical tests failed | Yes → do not continue ceremony | Fix or mark BLOCKED |
+| Critical security findings | Yes | Fix or REQUIRES_HUMAN_APPROVAL |
+| Kripacharya NOT-READY | Address gaps | — |
+| Kesh delivery | Final | See statuses below |
 
-### Step-by-Step Authority
+### Retry policy (unified)
 
-| # | Agent | Tier | Can Block? | Failure Action |
-|---|-------|------|-----------|----------------|
-| 1 | Vidura | A | ❌ (produces spec) | — |
-| 2 | Sanjaya | A | ❌ (produces map) | — |
-| 3 | Vyasa | A | ❌ (produces context bundle) | — |
-| 4 | Vishwakarma | A | ❌ (produces design) | — |
-| 5 | Sarthi | A | ❌ (produces plan) | — |
-| 6 | Parth | B | ❌ (produces code) | — |
-| 7 | Swachalit | B | ❌ (produces tests) | — |
-| 8 | **Bhishma** | **C** | ✅ **FAIL blocks** | Loop back to Parth |
-| 9 | **Lakshman** | **C** | ✅ **FAIL blocks** | Loop back to Parth |
-| 10 | Draupadi | C | ❌ (advisory) | — |
-| 11 | **Krishna** | **A** | ✅ **KILL stops execution** | Full stop |
-| 12 | **Money Lens** | **A** | ✅ **REJECT stops execution** | Full stop |
-| 13 | Decision Engine | A | ⚠️ CONDITIONAL / NO-GO gates | Address conditions or stop |
-| 14 | Kripacharya | A | ✅ can return NOT-READY | Address gaps |
-| 15 | **Kesh** | **A** | ✅ **FINAL AUTHORITY** | SHIP / NO-SHIP |
+- Max **3** retries per agent on transient failure
+- Max **5** build–critique loop iterations → escalate to Vishwakarma
+- Then escalate to user
 
 ---
 
-## Enforcement Rules (ABSOLUTE)
+## Delivery Status (Kesh final vocabulary)
 
-1. **No step skipping** — all 15 steps are mandatory unless explicitly gated by an earlier KILL/REJECT
-2. **Bhishma = FAIL → loop back to Parth** (step 8 → step 6); re-enter at Swachalit
-3. **Lakshman = FAIL → loop back to Parth** (step 9 → step 6)
-4. **Krishna = KILL → STOP** (step 11); report to user, do not proceed
-5. **Money Lens = REJECT → STOP** (step 12); report to user, do not proceed
-6. **No agent can approve its own output** — critique always comes from a different agent at a different tier
-7. **Parth and Bhishma MUST use different models** — enforces independent critique
-8. **Always highlight risks and unknowns** — even on success paths
-9. **Max retries per agent: 3** — then escalate to user
-10. **Max build-critique loop iterations: 5** — then escalate to Vishwakarma for re-architecture
-11. **Vyasa never speculates** — facts must cite a Confluence page key, Jira issue key, helpcenter article URL, developer-reference URL, or status-page incident URL; conflicting evidence across sources becomes `open_questions` or `customer_doc_drift` red-flag, never invented resolution
+| Status | Meaning |
+|--------|---------|
+| `COMPLETE` | Work done; required verification evidence present |
+| `PARTIAL` | Useful progress; known gaps listed |
+| `BLOCKED` | Cannot proceed without external input/fix |
+| `REQUIRES_HUMAN_APPROVAL` | Consequential action (prod, destructive DB, secrets, merge/deploy) |
+
+**Do not use SHIP as a synonym for COMPLETE when required verification did not run.**  
+Legacy “SHIP / NO-SHIP” maps to COMPLETE vs BLOCKED/PARTIAL/REQUIRES_HUMAN_APPROVAL.
 
 ---
 
-## Loop-back Logic
+## Debugging workflow (when class = DEBUGGING)
 
-```
-                    Step 6 (Parth)
-                         │
-                         ▼
-                    Step 7 (Swachalit)
-                         │
-                         ▼
-                 ┌── Step 8 (Bhishma) ──┐
-                 │       PASS / FAIL     │
-                 │                       │
-      FAIL ──────┤                       ├────── PASS
-      (back      │                       │       (continue)
-       to 6)     ▼                       ▼
-                 │                 Step 9 (Lakshman)
-                 │                     PASS / FAIL
-                 │                       │
-                 │       FAIL ───────────┤
-                 │       (back to 6)     │
-                 │                       ▼ PASS
-                 │                 Step 10 (Draupadi)
-                 │                       │
-                 └───────────────────────┤
-                                         ▼
-                                   Step 11+...
+1. Observed symptom  
+2. Collect evidence  
+3. Reproduce if possible  
+4. Map execution path  
+5. Hypotheses  
+6. Test hypotheses  
+7. Root cause or explicit uncertainty  
+8. Smallest safe fix  
+9. Regression tests  
+10. Verify  
 
-Loop budget: max 5 iterations. Iteration 6 → escalate to Vishwakarma.
-```
+Do not confuse correlation with causation. No production changes without approval.
 
 ---
 
-## Skip Logic (applicability-based ONLY — never cost-based)
+## Emergency / PRODUCTION_INCIDENT
 
-> The full 15-step flow is the **default**. Skips are allowed ONLY when an agent's input does not exist or its output would be empty. Never skip to save tokens or time.
+Triggered by explicit user language (prod down, security breach, data loss, critical escalation, fast/emergency mode) **or** class `PRODUCTION_INCIDENT`.
 
-### Allowed skips by input type
+- Prioritize diagnosis + mitigation proposal
+- Sanjaya + targeted fix path; Bhishma before claiming COMPLETE
+- Skip org-harvest delays (Vyasa) unless needed for blast radius
+- **No** silent production mutation; consequential acts need approval
+- Post-incident: fuller review when safe
 
-| Input Type | May Skip | Rationale (applicability reason) |
-|-----------|----------|----------------------------------|
-| **CACHE_FULL_HIT** (Step 0.5 — fingerprint valid, TTL OK, code hint matches) | All agents whose output is already in the cache entry | Output already exists; re-running would be empty of new signal. See `kesh-token-cache.mdc`. Closers (Kripacharya + Kesh) still run if user asks to SHIP. |
-| **CACHE_PARTIAL_HIT** (Step 0.5 — some agents fresh, some stale/missing) | Only the agents with fresh cached summaries | Missing/stale agents still run in parallel as usual |
-| **PATCH_INPUT** (diff-only review, no build requested) | Parth, Swachalit (Phase 2) | User is not asking for new build; all critique + gate agents still run |
-| **Pure clarification Q** (no code, no build) | Sanjaya, Vishwakarma, Parth, Swachalit, Bhishma, Lakshman | Nothing to analyze / build / review — but Vidura + Vyasa (if topic has any footprint across Atlassian / helpcenter / dev reference / status) + Krishna + Decision Engine still run |
-| **Architecture-only Q** (no implementation) | Parth, Swachalit, Bhishma, Lakshman | No code produced to review — but Sanjaya, Vyasa, Vishwakarma, Krishna, Money Lens, Decision Engine, Kripacharya, Kesh still run |
-| **Trivial config-only change** (1-line value change, no logic) | Sanjaya, Vyasa, Vishwakarma, Sarthi | Plan is trivial — but Vidura, Parth, Swachalit, Bhishma, Lakshman, Draupadi, Krishna, Money Lens, Decision Engine, Kripacharya, Kesh all still run |
-| **Topic with zero footprint across all five Vyasa sources** (brand-new internal R&D, no hits in Confluence / Jira / helpcenter / developer reference / status) | Vyasa | Vyasa returns `status: no_context` and does not block Phase 1 — all other agents still run |
+---
 
-### Never skippable (any task with code or behavior change)
+## Cache Gate (Step 0.5)
 
-- **Bhishma, Lakshman, Draupadi** — the 3-way critique lens is mandatory whenever an artifact exists
-- **Krishna, Money Lens, Decision Engine** — all three Phase 4 gates are mandatory whenever a decision is being made
-- **Kripacharya, Kesh** — the final closers are never skipped on any delivery
+See `kesh-token-cache.mdc`. Reuse valid cached specialist outputs. State `CACHE: FULL_HIT | PARTIAL_HIT | MISS`.
 
-### What is NOT a valid reason to skip
+---
 
-- ❌ "This task seems small" → run the full flow anyway; Phase 4 gates are cheap
-- ❌ "Saving tokens" without a Cache Gate hit → cost is user's call, not the system's. A bare "too expensive" is never applicability.
-- ❌ "Faster response" → if speed matters without cache, user must explicitly request fast-mode / Emergency Override
-- ❌ "The user didn't ask for review" → irrelevant; critique is structural, not optional
-- ❌ Inferring a CACHE_HIT without probing `knowledge/cache`, session, transcripts, or KB → must probe first
+## Knowledge Discovery Gate
 
-For any **new feature, refactor, bug fix, or behavior change** with no valid Cache Gate hit, no skips are permitted beyond the applicability rules above. Valid CACHE_* hits are applicability skips (output already exists), not cost skips — full rules in `~/.cursor/rules/kesh-token-cache.mdc`.
+See `kesh-knowledge-discovery.mdc` and `skills/knowledge-discovery/SKILL.md`.
+
+After classification (and with Sanjaya when code is in scope):
+
+1. Build Technology Inventory + coverage vs `knowledge/manifest.json` and `rules/standards/**`
+2. If **SUFFICIENT** → load only relevant standards; no research theater
+3. If gap → discover repo → org (Vyasa if available) → official docs; reconcile with authority rules
+4. Propose MDC create/update (MUST/SHOULD/MAY); **human approval** before writing shared standards
+5. Pass `knowledge_pack` once via shared context — Parth/Bhishma/Vishwakarma consume; do not re-research
+
+No new agent. Do not create MDC files when there is no meaningful gap. Never silent-override org mandates.
+
+---
+
+## Reuse-before-extend
+
+For routing/lookup/schema association problems, enforce `reuse-before-extend.mdc` (Option 0, field carrier inventory, consumer audit).
 
 ---
 
 ## Output Style
 
-- **Structured** — use headings, tables, verdicts
-- **Minimal** — no filler, no restated context
-- **Decisive** — each agent produces a verdict where applicable
-- **Risks surfaced** — never hide unknowns
-
----
-
-## Goal
-
-> Produce production-grade, high-quality, risk-evaluated output through structured multi-agent collaboration — **not single-agent guessing**.
+- **Human communication is mandatory** — `kesh-human-communication.mdc` (Staff/Principal voice; no AI filler; findings paste-ready)
+- **Code quality & docs are mandatory** for code work — `kesh-code-quality.mdc` (repo-first, maintainability, comments, contracts, ADRs/README when warranted — not doc spam)
+- **Quality guardrails** — `kesh-quality-guardrails.mdc` (token savings never override correctness/security/tests/high-risk review)
+- Structured, minimal, decisive; lead with the conclusion
+- Risks and unknowns surfaced; facts vs assumptions labeled
+- Enforcement honesty: label capabilities A–E when making claims about guarantees
+- External / multi-channel artifacts: `kesh-external-output-voice.mdc` + paste-ready channel blocks when the user needs PR/Slack/Confluence/Jira text
+- State `execution_mode` + `CACHE:` in deliveries
 
 ---
 
@@ -372,15 +280,17 @@ For any **new feature, refactor, bug fix, or behavior change** with no valid Cac
 
 | Concern | File |
 |---------|------|
-| Kesh supervisor behavior | `~/.cursor/agents/kesh.md` |
-| Each agent's detailed contract | `~/.cursor/agents/<name>.md` |
-| Always-on orchestration | `~/.cursor/rules/kesh-always-on.mdc` |
-| Runtime routing logic | `~/.cursor/rules/kesh-runtime-router.mdc` |
-| Explanation framework (chat-internal voice) | `~/.cursor/rules/kesh-explanation-framework.mdc` |
-| **External-output voice (Confluence / Jira / PR / Slack)** | `~/.cursor/rules/kesh-external-output-voice.mdc` |
-
-> ⚠️ **Important:** Kesh agent vocabulary (Krishna, Sanjaya, Bhishma … "GO/NO-GO",
-> "Phase X", "Tier A/B/C", "SHIP/NO-SHIP", etc.) is **strictly chat-internal**.
-> The moment Kesh output is piped into a Confluence page, Jira ticket, GitHub
-> PR, or Slack message, the **External-output voice** rule applies and all
-> agent vocabulary MUST be scrubbed. See `kesh-external-output-voice.mdc`.
+| Supervisor | `agents/kesh.md` |
+| Flow details | `agents/kesh-flows.md` |
+| Runtime router | `rules/kesh-runtime-router.mdc` |
+| Standards | `rules/standards/**` / `docs/STANDARDS.md` |
+| Knowledge | `knowledge/**` / `docs/KNOWLEDGE.md` |
+| Cache | `rules/kesh-token-cache.mdc` |
+| Human communication | `rules/kesh-human-communication.mdc` |
+| Code quality & documentation | `rules/kesh-code-quality.mdc` |
+| NITI learning loop | `rules/kesh-niti.mdc` |
+| Execution modes | `rules/kesh-execution-modes.mdc` |
+| Context packaging | `rules/kesh-context-packaging.mdc` |
+| Quality guardrails | `rules/kesh-quality-guardrails.mdc` |
+| External voice | `rules/kesh-external-output-voice.mdc` |
+| Token optimization | `docs/kesh-2.0/TOKEN-OPTIMIZATION.md` |

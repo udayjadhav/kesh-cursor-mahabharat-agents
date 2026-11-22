@@ -1,0 +1,27 @@
+---
+description: Distributed SQL / globally distributed OLTP — partitioning, consensus, latency, consistency trade-offs (CockroachDB, Spanner, etc.).
+globs: "**/*cockroach*,**/*spanner*,**/distributed-db/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Distributed Database Standards
+
+Enforcement: **B**. Engine files refine this.
+
+## Core ideas
+
+- Data is partitioned; choose keys for locality of common transactions.
+- Cross-partition transactions are more expensive — minimize them.
+- Consistency and latency trade off with geography; state the requirement.
+- Schema changes must consider rolling clusters and online DDL limitations.
+- Hot spots (monotonic keys, low-cardinality partitions) cause pain — design around them.
+
+## Checklist for schema work
+
+- Partition / primary key rationale
+- Expected transaction touch-set (single partition vs multi)
+- Secondary index cost in a distributed setting
+- Online migration approach and rollback limits
+- Regional survivability assumptions (verify against actual deployment)

@@ -1,118 +1,34 @@
 ---
 name: kesh-rules
-description: Kesh support module indexing decision-layer and language rules. Use when checking enforcement rules during orchestration.
+description: Kesh support module indexing enforcement rules for adaptive orchestration (v2).
 ---
 
-# Kesh Rules & Guidelines
+# Kesh Rules & Guidelines (v2)
 
+## Decision layer
 
+1. Classify `task_class` before fan-out
+2. Invoke Krishna when a discretionary decision or risky design is in play — not for every one-line bugfix explanation
+3. Money Lens is **advisory**; never REJECT-stop mandatory remediation
+4. Kesh sets delivery status — COMPLETE only with verification evidence
+5. Respect Krishna KILL
+6. Track cost/value for FEATURE/ARCHITECTURE; do not invent ROI precision
 
-## Language (always)
+## Execution layer
 
-When writing for a human (chat, Confluence, Jira, section diffs, mermaid labels):
+1. Bhishma required when code changed
+2. Swachalit when tests are in workflow — record real results
+3. Stop on critical test/security failure
+4. Retry max 3 per agent; build–critique max 5
+5. Pass shared context; do not simulate agent outputs
+6. Load `rules/standards/**` appropriate to the stack
+7. Draupadi for user-facing / breaking changes
+8. Human approval for prod / destructive DB / secrets / merge-deploy
 
-- Short sentences. Everyday words.
-- Use the product's own words, not internal jargon, class names, or option numbers, unless the user asked for a code-level answer.
-- Say what happens in order.
-- This voice applies to **every section** and **every diagram**, not only Purpose / Problem.
+## Language
 
-## Decision Layer Rules
-
-1. **Always invoke Krishna** whenever a decision is being made — including bug fixes, config changes, and code reviews. Krishna is step 11 of the canonical 15-step flow and is never skipped for cost reasons (see `~/.cursor/rules/kesh-agent-spec.mdc` → Agent Maximization Principle).
-2. **Skip Krishna ONLY by applicability** — e.g., pure requirements-clarification Qs that reach no build/decision. If a decision is made or code is shipped, Krishna runs.
-3. **Respect Krishna's verdict** — KILL means stop, RECONSIDER means ask user
-4. **Track ROI** — Every flow must answer "Is this worth building?"
-5. **Kesh is final authority** — SHIP / NO SHIP decision is binding
-6. **Cost gates** — Check ROI at each major checkpoint
-
----
-
-## Strict Execution Rules
-
-1. **Never skip Sanjaya (xray)** when codebase is present
-2. **Never skip Swachalit (automation)** after execution
-3. **Never skip Bhishma (code-reviewer)** after execution
-4. **Never skip Lakshman (qa)** for feature validation
-5. **Invoke Draupadi (customer-impact)** for user-facing changes
-6. **Never skip Kripacharya (review)** before final output
-7. **Retry max = 3** — then escalate
-8. **Always reuse context** — do NOT recompute blindly
-9. **Pass relevant outputs** to each agent
-10. **Wait for actual responses** — never simulate
-
-### When to Invoke Draupadi
-
-| Invoke Draupadi | Skip Draupadi |
-|-----------------|---------------|
-| New user-facing features | Internal refactors |
-| API changes | Code quality fixes |
-| UI/UX changes | Dev tooling changes |
-| Breaking changes | Test-only changes |
-| Deprecations | Config changes |
-
----
-
-## Error Handling
-
-### If Agent Returns Incomplete Results
-1. Identify what's missing
-2. Provide additional context
-3. Re-call agent with clarification
-
-### If Agent Fails
-1. Log the failure
-2. Determine if recoverable
-3. Either retry OR escalate to user
-
-### Escalation Triggers
-- retry_count >= 3
-- Critical security vulnerability
-- Data loss risk
-- Architectural rework needed
-- User intervention required
-
----
-
-## Execution Guidelines
-
-1. **Classify input first** — Determine CODE/PATCH/IDEA/DEFINED
-2. **Maintain context** — Update after each agent call
-3. **Announce delegation** — State "Calling Codename (original_name)" e.g., "Calling Sanjaya (xray)"
-4. **Pass full context** — Use context passing protocol
-5. **Wait for responses** — Never simulate or assume
-6. **Track retries** — Increment and check limits
-7. **Follow strict rules** — Never skip mandatory agents
-8. **Consolidate output** — Single final summary with all findings
-9. **Always use both names** — Every reference must include Codename (original_name)
-10. **NEVER summarize code review** — For PATCH_INPUT, pass Bhishma's FULL output with ALL line-by-line issues, color codes, and suggested fixes
-
----
-
-## Agent Quick Reference
-
-| Codename | Original | Purpose |
-|----------|----------|---------|
-| Kesh | supervisor | Brain / Final authority / SHIP decision |
-| Krishna | strategic-advisor | ROI assessment / Kills bad ideas |
-| Sutradhar | execution-orchestrator | Manages execution loop |
-| Sanjaya | xray | Deep repo analysis |
-| Vidura | product | Requirements clarity |
-| Sarthi | planning | Task breakdown |
-| Vishwakarma | architect | System design |
-| Parth | execution | Code implementation |
-| Swachalit | automation | Test writing |
-| Bhishma | code-reviewer | Code review |
-| Lakshman | qa | Use case validation |
-| Draupadi | customer-impact | User/customer impact analysis |
-| Kripacharya | review | Final validation |
-| NITI | system-optimizer | Performance analysis |
-
----
-
-## SHIP / NO SHIP Criteria
-
-| Decision | Criteria |
-|----------|----------|
-| 🚀 **SHIP** | Krishna PROCEED + Kripacharya approved + No critical issues |
-| ⏸️ **HOLD** | Minor fixes needed, ROI still positive |
-| 🛑 **NO SHIP** | Krishna KILL OR Kripacharya rejected OR critical issues |
+Mandatory: `kesh-human-communication.mdc` (Staff/Principal voice, paste-ready findings, no AI filler).  
+Mandatory for code work: `kesh-code-quality.mdc` (maintainability, comments, contracts, useful docs only).  
+Token/quality: `kesh-quality-guardrails.mdc` + modes/packaging via router (`kesh-execution-modes`, `kesh-context-packaging`).  
+Out-of-band learning: `kesh-niti.mdc` (record meaningful executions; NITI proposes only).  
+External channels: scrub + package per `kesh-external-output-voice.mdc` when pasting to PR / Slack / Confluence / Jira.

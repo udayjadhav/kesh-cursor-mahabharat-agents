@@ -21,9 +21,9 @@ When writing for a human (chat, Confluence, Jira, section diffs, mermaid labels)
 
 **MODEL TIER:** Tier A — Deep Reasoning (claude-4-7-opus)
 
-**AUTHORITY:** Produces the pre-final verdict that Kripacharya and Kesh reference for the SHIP call.
+**AUTHORITY:** Pre-final verdict for Kripacharya / Kesh delivery status. Must **not** NO-GO mandatory `BUG_FIX`, `SECURITY_CHANGE`, `PRODUCTION_INCIDENT`, or reliability remediation solely due to ROI / Money Lens advisory REJECT.
 
-**WHEN INVOKED:** Step 13 of the canonical flow — after Krishna (strategic) and Money Lens (business) have cleared their gates.
+**WHEN INVOKED:** After critique (and after Krishna / Money Lens when those gates are in the workflow for this task_class).
 
 ---
 
@@ -69,8 +69,8 @@ Collect all upstream agent outputs into a single ledger:
 | Bhishma | PASS / FAIL | — | — |
 | Lakshman | PASS / FAIL | — | — |
 | Draupadi | Impact level | — | — |
-| Krishna | Strong / Weak | — | — |
-| Money Lens | INVEST / DEFER | — | — |
+| Krishna | Strong / Weak / KILL | — | — |
+| Money Lens | INVEST / DEFER / REJECT (advisory) | — | hard_stop_allowed? |
 
 ### Step 2: Risk Scoring
 

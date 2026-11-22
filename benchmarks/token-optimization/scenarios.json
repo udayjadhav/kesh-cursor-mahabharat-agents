@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "note": "Fixed evaluation suite. Harness measures mode/agent/standards/context proxies. Live LLM quality and billing tokens require operator runs — do not fabricate them.",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Simple Java bug fix",
+      "task_class": "BUG_FIX",
+      "signals": [],
+      "paths": ["src/main/java/com/example/Service.java"],
+      "expected_mode": "STANDARD"
+    },
+    {
+      "id": 2,
+      "name": "Quarkus REST API implementation",
+      "task_class": "FEATURE",
+      "signals": [],
+      "paths": ["src/main/java/com/example/api/Resource.java", "pom.xml"],
+      "expected_mode": "STANDARD"
+    },
+    {
+      "id": 3,
+      "name": "Python data processing change",
+      "task_class": "FEATURE",
+      "signals": [],
+      "paths": ["pipelines/transform.py", "pyproject.toml"],
+      "expected_mode": "STANDARD"
+    },
+    {
+      "id": 4,
+      "name": "React component change",
+      "task_class": "FEATURE",
+      "signals": [],
+      "paths": ["src/components/Widget.tsx", "package.json"],
+      "expected_mode": "STANDARD"
+    },
+    {
+      "id": 5,
+      "name": "Database schema migration",
+      "task_class": "DATABASE_CHANGE",
+      "signals": ["schema", "migration"],
+      "paths": ["db/migration/V42__add_column.sql"],
+      "engines": ["postgresql"],
+      "expected_mode": "CRITICAL"
+    },
+    {
+      "id": 6,
+      "name": "Distributed transaction issue",
+      "task_class": "INVESTIGATION",
+      "signals": ["distributed", "consistency"],
+      "paths": ["services/orders/saga.kt"],
+      "expected_mode": "CRITICAL"
+    },
+    {
+      "id": 7,
+      "name": "Security vulnerability investigation",
+      "task_class": "SECURITY_CHANGE",
+      "signals": ["security", "auth"],
+      "paths": ["src/main/java/com/example/auth/Filter.java"],
+      "expected_mode": "CRITICAL"
+    },
+    {
+      "id": 8,
+      "name": "Production incident diagnosis",
+      "task_class": "PRODUCTION_INCIDENT",
+      "signals": ["production", "incident"],
+      "paths": ["services/api/Handler.java"],
+      "expected_mode": "INCIDENT_ARCHITECTURE"
+    },
+    {
+      "id": 9,
+      "name": "Architecture decision",
+      "task_class": "ARCHITECTURE",
+      "signals": ["architecture"],
+      "paths": ["docs/architecture/overview.md"],
+      "expected_mode": "INCIDENT_ARCHITECTURE"
+    },
+    {
+      "id": 10,
+      "name": "Pull request review",
+      "task_class": "CODE_REVIEW",
+      "signals": [],
+      "paths": ["src/main/java/com/example/Service.java"],
+      "expected_mode": "STANDARD"
+    },
+    {
+      "id": 11,
+      "name": "AI output evaluation design",
+      "task_class": "FEATURE",
+      "signals": ["ai", "llm", "eval"],
+      "paths": ["services/ai/Extractor.java"],
+      "expected_mode": "CRITICAL"
+    },
+    {
+      "id": 12,
+      "name": "Multi-tenant authorization review",
+      "task_class": "SECURITY_CHANGE",
+      "signals": ["security", "multi-tenant", "rbac"],
+      "paths": ["src/main/java/com/example/auth/TenantFilter.java"],
+      "expected_mode": "CRITICAL"
+    }
+  ]
+}

@@ -72,11 +72,41 @@ Read and follow the X-Ray skill at `~/.cursor/skills/xray/SKILL.md` for the comp
 6. Tests: test/, tests/, *_test.*, *.spec.*
 ```
 
+## Technology Inventory & Knowledge Coverage (mandatory for CODE-bearing tasks)
+
+Before deep architecture narrative, emit a **Technology Inventory** for task-relevant stack items (languages, frameworks, DBs, cloud/infra, messaging, build tools, auth). Cite evidence files/versions.
+
+Then assess coverage against:
+
+- `knowledge/manifest.json` (or `~/.cursor/knowledge/kesh/manifest.json`)
+- `rules/standards/**`
+- Repo ADRs / CONTRIBUTING / lint configs
+
+Per technology: `SUFFICIENT | PARTIAL | MISSING | STALE | CONFLICT_SUSPECTED`.
+
+**Presence of an MDC file is not automatic sufficiency** — note workload gaps.
+
+Hand off gaps to Kesh via:
+
+```yaml
+knowledge_gaps:
+  - technology: ...
+    coverage: PARTIAL|MISSING|STALE|CONFLICT_SUSPECTED
+    missing_topics: [...]
+    suggested_action: LOAD | RESEARCH | UPDATE_STANDARD | CREATE_STANDARD | NONE
+standards_candidates: [...]
+```
+
+Do **not** invent org policy. Do **not** write MDC files — Kesh/skill proposes; human approves.
+
+Full procedure: `skills/knowledge-discovery/SKILL.md` and `rules/kesh-knowledge-discovery.mdc`.
+
 ## Output Format
 
 Return structured analysis including:
 - Executive summary (one-liner, health status, biggest risk/strength)
 - Repo classification and tech stack
+- **Technology Inventory + knowledge coverage**
 - Architecture diagram (Mermaid)
 - Red flags (critical security/stability issues)
 - Quality scorecard with evidence
@@ -146,11 +176,13 @@ Skipping this inventory when the task emits new query / filter / event values is
 
 ## Context to Return
 
-When delegated by CEO, return:
+When delegated by Kesh, return:
 - Executive summary
 - Repo type and tech stack
+- Technology Inventory + knowledge coverage / gaps
 - Architecture diagram
 - Red flags (if any)
 - Key risks
 - Scorecard summary
 - Recommended next steps based on findings
+- standards_candidates for loading

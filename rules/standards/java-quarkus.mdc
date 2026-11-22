@@ -1,0 +1,69 @@
+---
+description: Java and Quarkus backend standards — design, CDI, REST, transactions, concurrency, testing. Follow the repository toolchain when it differs.
+globs: "**/*.{java,kt},**/pom.xml,**/build.gradle*,**/gradle.properties,**/application*.{properties,yml,yaml},**/resources/application*"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Java & Quarkus Standards
+
+Enforcement: **B**. Prefer project conventions over this file when they conflict with evidence in-repo.
+
+## Design
+
+- Apply SOLID/DRY/KISS with restraint — see `software-architecture.mdc`.
+- Package by feature or bounded context when the codebase already does; do not reorganize casually.
+- Introduce interfaces/factories only for multiple implementations, testing seams that pay for themselves, or framework requirements.
+- Prefer immutable data where practical; minimize shared mutable state.
+
+## Quarkus / CDI
+
+- Use CDI beans with appropriate scope (`@ApplicationScoped`, `@RequestScoped`, etc.).
+- Constructor injection preferred; avoid field injection in new code unless matching local style.
+- Config via MicroProfile Config / `%profile` properties — no hardcoded env-specific values in code.
+- Distinguish blocking vs non-blocking (reactive) paths; do not block event-loop threads.
+- Use Quarkus extensions already in the project before adding new ones.
+
+## REST & APIs
+
+- Clear resource naming; consistent error bodies; correct status codes.
+- Validate input (Bean Validation) at the boundary.
+- Backward-compatible API evolution; deprecate before remove.
+- Authn/z at the edge; never rely on “hidden” URLs.
+
+## Data & transactions
+
+- Explicit transaction boundaries (`@Transactional` wisely — not on every method).
+- Connection pools sized from evidence; never leak connections/streams.
+- Use parameterized queries / repository APIs; no string-built SQL.
+- For multi-service consistency, see `microservices.mdc` (outbox/saga) — do not invent XA lightly.
+
+## Concurrency & performance
+
+- Thread safety for shared mutable state; prefer concurrent utilities over home-rolled locks.
+- Avoid premature optimization; measure before caching.
+- Mind JVM memory: allocations in hot paths, N+1 queries, unbounded collections.
+
+## Observability
+
+- Structured logging with correlation IDs; no secrets in logs.
+- Metrics and traces via existing Quarkus OpenTelemetry / Micrometer setup when present.
+
+## Testing (when applicable)
+
+| Layer | Typical tools |
+|-------|----------------|
+| Unit | JUnit 5, Mockito |
+| Integration | `@QuarkusTest`, Testcontainers |
+| API | RestAssured / HTTP tests |
+| Contract | Pact or project equivalent |
+| Architecture | ArchUnit if already used |
+| Performance | Only with clear SLO and harness |
+
+Match the repo’s existing test stack. Record commands and exit codes — never fabricate.
+
+## Dependencies
+
+- Prefer BOM / Quarkus platform alignment.
+- Justify new dependencies; check licenses and CVE posture with available tools.

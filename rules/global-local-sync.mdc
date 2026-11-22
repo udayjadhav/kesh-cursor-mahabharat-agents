@@ -1,6 +1,7 @@
 ---
-description: "Defines how global agents/rules sync with workspace-specific configurations"
-alwaysApply: true
+description: "Defines how global agents/rules sync with workspace-specific configurations. Load when editing agents/rules/install."
+alwaysApply: false
+globs: "**/agents/**,**/rules/**,**/install.sh,**/.cursor/**"
 ---
 
 # Global ↔ Local Sync Rule

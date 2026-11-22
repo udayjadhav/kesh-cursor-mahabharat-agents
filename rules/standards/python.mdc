@@ -1,0 +1,53 @@
+---
+description: Python backend and data engineering standards — typing, packaging, async, safety, testing. Prefer the repository toolchain (Ruff, mypy/pyright, pytest, etc.).
+globs: "**/*.{py,pyi},**/pyproject.toml,**/requirements*.txt,**/Pipfile*,**/setup.cfg,**/setup.py,**/poetry.lock,**/uv.lock"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Python Standards
+
+Enforcement: **B**. Defer to in-repo tooling and style when present.
+
+## Design
+
+- Idiomatic Python (PEP 8 spirit); clarity over cleverness.
+- Type hints on public functions and non-trivial internals; run the project’s checker (mypy/pyright) when configured.
+- Clear package boundaries; avoid circular imports via structure, not hacks.
+- Explicit exceptions; narrow `except`; use context managers for resources.
+
+## Concurrency & I/O
+
+- Use `asyncio` only when the stack is async; do not mix blocking I/O into async hot paths without executors.
+- Prefer well-known HTTP/DB clients already in the project.
+- For data workloads: vectorized/batch operations over Python loops on large frames when libraries are already used (pandas/polars/spark — do not invent a stack).
+
+## APIs & data access
+
+- Validate external input; separate domain logic from framework adapters.
+- Parameterized SQL / ORM APIs only; never f-string SQL with user data.
+- Manage sessions/connections explicitly; commit/rollback deliberately.
+
+## Tooling (when available in repo or approved env)
+
+| Concern | Common tools |
+|---------|----------------|
+| Lint/format | Ruff (or project formatter) |
+| Types | mypy or Pyright |
+| Tests | pytest, Coverage.py |
+| Security | Bandit, pip-audit / OSV |
+
+Run what exists; report what you could not run.
+
+## Security & observability
+
+- No secrets in code or logs.
+- Structured logging; correlate requests where applicable.
+- See `security.mdc`.
+
+## Testing
+
+- pytest idioms matching the repo.
+- Parametrize edge cases; assert behavior, not private internals.
+- Record command + exit code; never fabricate results.

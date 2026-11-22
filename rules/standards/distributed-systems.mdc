@@ -1,0 +1,45 @@
+---
+description: Distributed systems engineering — consistency, failure, delivery semantics, observability. Pair with knowledge/ modules for deeper concepts.
+globs: "**/services/**,**/messaging/**,**/kafka/**,**/pubsub/**,**/events/**,**/workers/**,**/jobs/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Distributed Systems Standards
+
+Enforcement: **B**. Conceptual depth: `knowledge/` modules (optional install). Reading a note is not verified knowledge of a specific production system.
+
+## First questions
+
+1. What is the consistency requirement (strong vs eventual)?
+2. What is the failure domain (process, node, zone, region)?
+3. What are delivery semantics (at-most-once, at-least-once, effectively-once)?
+4. Who owns the data and the source of truth?
+5. What is the timeout and retry budget end-to-end?
+
+## Consistency & data
+
+- Do not pretend two-phase commit is cheap; prefer single-writer aggregates or explicit sagas.
+- Replication lag is real — design read-your-writes where UX needs it.
+- Partitioning/sharding keys must match access patterns; changing them is expensive.
+- Idempotent consumers for at-least-once buses.
+
+## Time & ordering
+
+- Do not rely on wall-clock ordering across nodes for correctness.
+- Use monotonic tokens, version vectors, or store-assigned offsets where needed.
+- Document ordering guarantees of the broker/DB you actually use.
+
+## Observability
+
+- Structured logs, metrics, and distributed traces for cross-service paths.
+- SLIs/SLOs for critical user journeys; alert on symptoms, not only causes.
+- Chaos or failure testing only with explicit approval and environment scope.
+
+## Anti-patterns
+
+- “Exactly once” claims without stating the mechanism
+- Infinite retries without jitter/cap
+- Ignoring partial failure in fan-out
+- Assuming a network call is a local function call

@@ -1,0 +1,55 @@
+---
+description: Cross-stack testing standards — meaningful assertions, evidence of execution, test pyramid judgment.
+globs: "**/*.{test,spec}.{ts,tsx,js,jsx,py,java,kt,go,clj},**/test/**,**/tests/**,**/__tests__/**,**/*_test.go,**/*Test.java"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Testing Standards
+
+Enforcement: **B**. Actual runs with recorded exit codes elevate claims toward verified work.
+
+## Goals
+
+- Catch regressions before users do.
+- Document expected behavior via executable examples.
+- Prefer tests that would fail if the bug returned.
+
+## What to write
+
+| Type | Use when |
+|------|----------|
+| Unit | Pure logic, branching, edge cases |
+| Integration | DB, messaging, HTTP against real-ish deps (Testcontainers, etc.) |
+| API / contract | Public HTTP/event contracts |
+| Migration | Schema upgrades/rollbacks where supported |
+| Regression | Every fixed production bug that can be reproduced |
+| E2E | Critical user journeys sparingly |
+| Performance / concurrency | When the risk is load or races — not by default |
+
+## Quality bar
+
+- Meaningful assertions (not “did not throw” alone unless that is the contract).
+- Boundary values, empty/null, auth failure, idempotent retries where relevant.
+- Independent, deterministic tests.
+- Follow the repo’s existing framework and layout.
+
+## Anti-patterns
+
+- Tests that mirror implementation line-by-line.
+- Excessive mocking that proves nothing about integration.
+- Snapshot spam without intent.
+- Claiming green without running the command.
+
+## Evidence required in agent reports
+
+```
+command:
+exit_code:
+passed:
+failed:
+skipped:
+coverage: (if available)
+not_run: (list + why)
+```

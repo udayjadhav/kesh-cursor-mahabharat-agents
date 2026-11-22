@@ -1,244 +1,109 @@
 ---
 name: kesh-output
-description: Kesh support module for output format — tables, verdicts, diagrams, and depth-based formatting. Use when shaping the final user-facing response.
+description: Kesh support module for consolidated delivery reports, channel paste-ready variants, and depth-based formatting.
 ---
 
-# Kesh Output Formats
-
-
+# Kesh Output Formats (v2.3)
 
 ## Language (always)
 
-When writing for a human (chat, Confluence, Jira, section diffs, mermaid labels):
+Follow `kesh-human-communication.mdc`:
 
-- Short sentences. Everyday words.
-- Use the product's own words, not internal jargon, class names, or option numbers, unless the user asked for a code-level answer.
-- Say what happens in order.
-- This voice applies to **every section** and **every diagram**, not only Purpose / Problem.
+- Staff/Principal engineer voice
+- Lead with the conclusion
+- No AI filler
+- Facts vs assumptions vs recommendations labeled
+- External paste: scrub per `kesh-external-output-voice.mdc`
 
-## For PATCH_INPUT (Code Review Only)
+For code deliveries, also honour `kesh-code-quality.mdc`: report docs/comments touched (or N/A), never claim documentation-complete from Markdown volume alone.
 
-**CRITICAL:** For code review requests, Kesh MUST pass through Bhishma's FULL output.
-- ❌ DO NOT summarize
-- ❌ DO NOT truncate
-- ✅ Show ALL line-by-line issues
-- ✅ Show ALL file details
-- ✅ Include color-coded severity markers
+---
+
+## Default engineering delivery report (chat)
+
+Every completed engineering task should produce:
 
 ```markdown
-# Code Review Report
+## Task summary
+What changed and why.
 
-## Summary
-[Brief: what this change does]
+## Files changed
+- `path` — …
 
----
+## Engineering decisions
+Important choices and trade-offs.
 
-# Complete Issues List (All Files)
+## Documentation / comments
+What was updated (contracts, README, ADR, migration notes) or why none were needed.
 
-## File: `path/to/file1.ext`
+## NITI telemetry (meaningful deliveries)
+Recorded with `scripts/niti/record_execution.py`? yes/no — execution_id if yes.
 
-### Issue #1: [🔴 CRITICAL] Issue Title
+## Verification
+| Command | Exit code | Result |
+|---------|-----------|--------|
+| … | … | … |
 
-**Code (Lines X-Y):**
+## Review findings
+Merged, deduplicated findings (human-usable shape).
 
-```[lang]
-   45 |     const user = await db.query(
->> 46 |       `SELECT * FROM users WHERE email = '${email}'`    ← 🔴 ISSUE HERE
-   47 |     );
+## Security
+Checks run + residual concerns. Never invent scanner results.
+
+## Risks
+Unresolved problems and assumptions.
+
+## Delivery status
+COMPLETE | PARTIAL | BLOCKED | REQUIRES_HUMAN_APPROVAL
 ```
 
-**Problem:** SQL injection vulnerability. User input directly in query.
+Omit empty ceremony sections. **COMPLETE** needs verification evidence.
 
-**Recommended Fix:**
-
-```[lang]
-const user = await db.query(
-  'SELECT * FROM users WHERE email = $1',
-  [email]
-);
-```
+When `task_class` / knowledge_gate matter for the operator, mention them briefly — strip them from external paste blocks.
 
 ---
 
-### Issue #2: [🟠 HIGH] Issue Title
+## CODE_REVIEW
 
-**Code (Lines X-Y):**
-
-```[lang]
-   49 |   if (user.password === password) {    ← 🟠 ISSUE HERE
-```
-
-**Problem:** Plain text password comparison.
-
-**Recommended Fix:**
-
-```[lang]
-const isValid = await bcrypt.compare(password, user.passwordHash);
-if (isValid) {
-```
+Prefer issues-only findings in the preferred shape from `kesh-human-communication.mdc`.  
+Pass through full issue detail; merge duplicates across agents.  
+If the user needs PR comments, also emit **Paste-ready — GitHub review** blocks (one finding per comment when practical).
 
 ---
 
-## File: `path/to/file2.ext`
+## Multi-channel packaging
 
-[... continue for all files ...]
+When the user needs output for GitHub, Slack, Confluence, Jira, or a doc:
 
----
-
-## Summary Table
-
-| File | 🔴 CRITICAL | 🟠 HIGH | 🟡 MEDIUM | 🔵 LOW | Total |
-|------|-------------|---------|-----------|--------|-------|
-| file1.ext | 1 | 2 | 0 | 1 | 4 |
-| file2.ext | 0 | 1 | 2 | 0 | 3 |
-| **Total** | **1** | **3** | **2** | **1** | **7** |
-
----
-
-## QA Validation
-
-| # | Use Case | Status |
-|---|----------|--------|
-| 1 | [Use case] | ✅ PASS / ❌ FAIL |
-
-- **Use Cases Checked:** X
-- **Use Cases NOT Affected:** Y
-
----
-
-## Final Verdict
-
-**Production Ready:** ❌ NO (X critical/high issues)
-
-**Must Fix (🔴 CRITICAL + 🟠 HIGH):**
-1. Issue #1: SQL injection - file1.ext:L46
-2. Issue #2: Plain text password - file1.ext:L49
-3. Issue #5: Missing auth check - file2.ext:L23
-
-**Should Fix (🟡 MEDIUM):**
-1. Issue #3: No logging - file1.ext:L52
-
-**Consider (🔵 LOW):**
-1. Issue #4: Verbose code - file1.ext:L60
-```
-
----
-
-## Color Code Reference
-
-| Marker | Severity | Meaning |
-|--------|----------|---------|
-| `🔴` | CRITICAL | Block merge. Security, data loss, crash |
-| `🟠` | HIGH | Should fix. Logic bugs, missing validation |
-| `🟡` | MEDIUM | Fix soon. Quality, edge cases |
-| `🔵` | LOW | Nice to have. Style, suggestions |
-| `>>` | Line marker | Points to exact issue line |
-| `← 🔴 ISSUE HERE` | Inline marker | Highlights issue in code |
-
----
-
-## For Full Build (CODE_INPUT / IDEA_INPUT)
+1. Write the engineering substance once (human standard).  
+2. Emit labeled paste-ready variant(s) with agent vocabulary scrubbed.  
+3. Do not force all channels — only what was requested or clearly needed.
 
 ```markdown
-# Final Output
+### Paste-ready — GitHub review
+…
 
-## Decision: 🚀 SHIP / ⏸️ HOLD / 🛑 NO SHIP
+### Paste-ready — Slack
+…
 
----
-
-## Strategic Assessment (Krishna)
-- **Verdict**: PROCEED / RECONSIDER / KILL
-- **ROI Assessment**: [cost vs value]
-- **Key Assumptions**: [validated/challenged]
-- **Alternatives Considered**: [list]
-
----
-
-## Summary
-What was built / analyzed
-
-## Key Deliverables
-- Features implemented
-- Code produced
-- Analysis completed
-
-## Architecture
-<MERMAID DIAGRAM from Vishwakarma (architect)>
-
-## Code Review Findings
-(from Bhishma - FULL OUTPUT, not summarized)
-[Include complete line-by-line review]
-
-## Test Coverage
-(from Swachalit (automation))
-- Tests Written: [count]
-- Coverage: [percentage if available]
-- Gaps: [list]
-
-## QA Findings
-(from Lakshman (qa))
-- Use Cases Checked: [count]
-- Use Cases Passed: [count]
-- Use Cases NOT Affected: [count]
-- Issues Found: [count]
-- Unresolved: [list]
-
-## Customer Impact
-(from Draupadi (customer-impact) - if user-facing change)
-- **Verdict**: 🔴 BREAKING / 🟠 DEGRADED / 🟡 CHANGED / 🟢 IMPROVED / ⚪ NO IMPACT
-- **Users Affected**: [count/segments]
-- **Migration Required**: Yes / No
-- **Communication Needed**: Yes / No
-- **Key Concerns**: [list]
-
-## Risks & Improvements
-(from Kripacharya (review))
-- Blockers: [list]
-- Recommendations: [list]
-
----
-
-## Cost & ROI Summary
-
-| Metric | Estimate | Actual |
-|--------|----------|--------|
-| Engineering Days | X | Y |
-| Estimated Cost | $X | $Y |
-| Estimated Value | $X | - |
-| ROI | X% | - |
-
-**ROI Verdict**: Worth it / Marginal / Not worth it
-
----
-
-## Execution Stats
-- Retry Count: [count]
-- Agents Called: [list with both names]
-- Steps Completed: [list]
-
-## Final Decision
-
-| Check | Status |
-|-------|--------|
-| Krishna ROI Positive | ✅ / ❌ |
-| Kripacharya Approved | ✅ / ❌ |
-| Critical Issues | 0 / X |
-| Tests Passing | ✅ / ❌ |
-
-**Kesh Decision**: 🚀 SHIP / ⏸️ HOLD / 🛑 NO SHIP
-
-**Reason**: [Why this decision]
-
-## Next Steps
-[If any follow-up needed]
+### Paste-ready — Confluence
+…
 ```
 
 ---
 
-## SHIP / HOLD / NO SHIP Criteria
+## Depth
 
-| Decision | When |
-|----------|------|
-| 🚀 **SHIP** | Krishna ROI positive + Kripacharya approved + No critical issues |
-| ⏸️ **HOLD** | Minor issues to fix, ROI still positive |
-| 🛑 **NO SHIP** | ROI negative OR critical issues OR Kripacharya rejected |
+| Depth | Shape |
+|-------|-------|
+| Overview | Short summary + status |
+| Detailed | Delivery report; diagrams only if useful |
+| Deep dive | Report + citations + full findings |
+
+---
+
+## Consolidation rules (Kesh)
+
+- Merge duplicate findings
+- Surface disagreements with evidence
+- Self-check the human-communication acceptance questions before presenting

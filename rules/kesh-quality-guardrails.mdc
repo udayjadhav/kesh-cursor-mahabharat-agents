@@ -1,0 +1,23 @@
+---
+description: Non-negotiable quality guardrails — token savings must never override these.
+alwaysApply: true
+version: 2.5.0
+---
+
+# Quality Guardrails (Token Optimization)
+
+Token reduction is **invalid** if it sacrifices:
+
+1. Correctness  
+2. Security  
+3. Data integrity  
+4. Mandatory tests for the change  
+5. Independent review for **CRITICAL** / **INCIDENT_ARCHITECTURE** code changes  
+6. Backward compatibility commitments  
+7. Documentation of meaningful public contract changes  
+8. Honest reporting of unverified behaviour  
+
+When evidence is insufficient: **say so**. Do not manufacture confidence.
+
+Severity: block on CRITICAL/HIGH security, correctness, data-loss, and reliability defects.  
+Do **not** block delivery solely on minor stylistic preferences.

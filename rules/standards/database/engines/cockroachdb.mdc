@@ -1,0 +1,25 @@
+---
+description: CockroachDB — distributed SQL, parent keys, follower reads, online schema changes.
+globs: "**/*cockroach*,**/crdb/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# CockroachDB
+
+Enforcement: **B**. Not interchangeable with single-node PostgreSQL despite wire compatibility myths.
+
+## Distinctives
+
+- Data distributed by primary key / column families — design keys for locality.
+- Multi-row transactions that span ranges cost more; minimize.
+- Prefer UUID/unordered keys carefully — watch hot ranges from monotonic keys.
+- Online schema changes have stages; follow CRDB migration guidance.
+- Follower reads / exact staleness are explicit choices — document consistency needs.
+- `SERIAL`/`SEQUENCE`-like patterns can create hotspots — prefer alternatives recommended for CRDB.
+
+## Do not
+
+- Assume every PostgreSQL extension or feature exists
+- Ignore range hotspots under load tests

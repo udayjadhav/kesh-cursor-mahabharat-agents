@@ -9,7 +9,7 @@ version: 1.0.0
 
 > **Scope note:** This is a lightweight quick-reference for fast lookups during daily programming. It is **not** a replacement for the full style guide. For anything beyond these core layout/indentation/`ns` rules, refer to:
 >
-> - **Full rule:** `~/.cursor/rules/clojure-review.mdc` (comprehensive)
+> - **Full rule:** `~/.cursor/rules/standards/clojure-review.mdc` (comprehensive)
 > - **Upstream references:**
 >   - Community guide: https://guide.clojure.style/
 

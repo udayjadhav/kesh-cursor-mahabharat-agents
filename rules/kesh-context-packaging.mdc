@@ -1,0 +1,44 @@
+---
+description: Per-agent context packages — pass slices and file refs, not entire chats or all standards.
+alwaysApply: false
+version: 2.5.0
+---
+
+
+# Context Packaging
+
+Do **not** paste the full conversation, every agent spec, or every standards file into every Task.
+
+## Package shape
+
+```json
+{
+  "agent": "parth",
+  "execution_mode": "STANDARD",
+  "task_class": "BUG_FIX",
+  "requirements": "…",
+  "constraints": ["…"],
+  "source_refs": ["path:lines or path"],
+  "standards_refs": ["rules/standards/java-quarkus.mdc"],
+  "verified_findings": ["…"],
+  "expected_output": "…",
+  "dependencies": ["…"],
+  "open_questions": ["…"],
+  "cache_refs": [],
+  "max_context_chars_hint": 12000
+}
+```
+
+## Rules
+
+1. Prefer **paths / fingerprints** over copying large docs.  
+2. Load documentation **progressively** (only what the agent needs now).  
+3. Pass **verified** prior findings; label uncertainty explicitly.  
+4. Sutradhar loops: fresh package + short history summary — not dirty full transcript.  
+5. Build with `python3 scripts/context/package.py` when automating.
+
+## Anti-patterns
+
+- Dumping all of `rules/**` into a specialist prompt  
+- Re-sending full Sanjaya xray when a 2k cache summary exists  
+- Re-explaining the same architecture in every agent message  

@@ -1,0 +1,25 @@
+---
+description: Analytical / warehouse standards — columnar storage, batch loads, partitioning for scan efficiency (e.g. BigQuery).
+globs: "**/*bigquery*,**/*bq*,**/analytics/**,**/warehouse/**,**/dbt/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Analytical Database Standards
+
+Enforcement: **B**. Do not use warehouses as OLTP systems of record.
+
+## Principles
+
+- Optimize for scan/aggregation patterns; partition and cluster by filter columns that matter.
+- Prefer append-only / immutable facts with derived models over row-level mutability.
+- Cost control: bound scanned bytes; avoid SELECT * in scheduled jobs.
+- Schema evolution via additive columns and versioned models when possible.
+- Separate raw, cleaned, and mart layers when the project uses that pattern.
+
+## Anti-patterns
+
+- Point-update heavy workloads on columnar warehouses
+- Unpartitioned multi-TB tables queried without filters
+- Treating BI extracts as transactional truth

@@ -1,0 +1,59 @@
+---
+description: React and TypeScript frontend standards — composition, hooks, state, a11y, security, testing. Do not prescribe unnecessary state libraries.
+globs: "**/*.{ts,tsx,js,jsx},**/tsconfig*.json,**/package.json,**/vite.config.*,**/next.config.*,**/playwright.config.*,**/vitest.config.*"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# React & TypeScript Standards
+
+Enforcement: **B**. Match the existing design system and folder conventions.
+
+## TypeScript
+
+- Prefer precise types over `any`; narrow at boundaries (API responses).
+- Share types with the API layer when the repo already does; do not invent a parallel model layer without need.
+- Avoid unsafe casts; document residual `unknown` parsing.
+
+## Components & hooks
+
+- Compose small components; one clear responsibility per component where practical.
+- Hooks: follow rules of hooks; extract custom hooks when reuse or clarity improves.
+- State: local state first; lift only when needed. Use the project’s existing global store if present — do **not** add Redux/Zustand/etc. without a concrete reason.
+- Derive state when possible; avoid syncing duplicate sources of truth.
+- `useEffect` for synchronization with external systems — not for deriving renderable state.
+
+## UI quality
+
+- Accessible by default: semantic HTML, labels, keyboard, focus, ARIA only when needed.
+- Responsive layouts consistent with existing CSS approach.
+- Error boundaries for recoverable UI failure domains already used in the app.
+- Forms: validate before submit; show actionable errors; preserve user input on failure.
+
+## Performance
+
+- Measure before memoizing. Do not sprinkle `useMemo`/`useCallback` without evidence or repo guidance (e.g. React Compiler).
+- Avoid unnecessary re-renders from unstable props/context values.
+- Lists: virtualize only when needed for large datasets.
+
+## Security
+
+- Treat API data as untrusted for HTML injection.
+- No secrets in the client bundle.
+- CSRF/XSS: follow `security.mdc` and existing auth cookie patterns.
+
+## API integration
+
+- Centralize fetch/client errors consistently with the codebase.
+- Handle loading, empty, and error states explicitly.
+- Do not silently swallow failed mutations.
+
+## Testing (when applicable)
+
+| Layer | Common tools |
+|-------|----------------|
+| Unit/component | Vitest/Jest + React Testing Library |
+| E2E | Playwright/Cypress if present |
+
+Test user-visible behavior over implementation details. Record commands and results; never fabricate.

@@ -1,0 +1,25 @@
+---
+description: PostgreSQL-specific guidance — MVCC, indexes, DDL, extensions. Do not assume Cognate behavior from MySQL/Cockroach.
+globs: "**/*postgres*,**/*pgsql*,**/postgresql/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# PostgreSQL
+
+Enforcement: **B**. Verify version features against the running major version.
+
+## Distinctives
+
+- MVCC: updates create new row versions; vacuum/bloat matter.
+- Rich indexes (B-tree, GIN, GiST, partial, expression) — choose deliberately.
+- `CONCURRENTLY` for indexes when avoiding write locks; know failure modes.
+- Transactions + `SELECT … FOR UPDATE` for critical sections; keep short.
+- JSONB is powerful but not a free substitute for relational modelling.
+- Logical replication / partitioning are operationally non-trivial — plan explicitly.
+
+## Migration notes
+
+- Some DDL takes strong locks; check docs for the exact command.
+- Prefer expand/contract; test on a copy with production-like volume.

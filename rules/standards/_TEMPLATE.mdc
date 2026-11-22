@@ -1,0 +1,77 @@
+---
+description: "TODO: one-line description of this standard module"
+globs: "TODO/**/*"
+alwaysApply: false
+version: 0.1.0
+kesh_module: standards
+last_reviewed: "YYYY-MM-DD"
+---
+
+# TODO: Technology / Topic Name
+
+Enforcement of this file: **B** (prompt-guided) unless noted.  
+Do not treat inferred recommendations as verified organization policy.
+
+## 1. Purpose and scope
+
+What this standard covers and does **not** cover.
+
+## 2. Applicability
+
+- Technologies: …
+- Versions: … (state if unknown)
+- Workloads: …
+- Task classes: …
+
+## 3. Knowledge sources and authority
+
+| Source | Type | Authority | Date / version | Notes |
+|--------|------|-----------|----------------|-------|
+| … | repo / org / vendor / inferred | … | … | … |
+
+Org sources status: **available** | **unavailable** | **partial**
+
+## 4. Organization-specific requirements
+
+Verified org/policy items only. If none verified, write: `None verified in this session.`
+
+## 5. Repository conventions
+
+What this repo actually does (with file evidence). Flag possible legacy.
+
+## 6. Technical recommendations
+
+Concise actionable guidance for agents/engineers.
+
+## 7. Security and reliability
+
+Threats, defaults, operational risks relevant to this tech.
+
+## 8. MUST / SHOULD / MAY
+
+### MUST
+- …
+
+### SHOULD
+- …
+
+### MAY
+- …
+
+## 9. Exceptions and trade-offs
+
+When overrides are justified; how to document them.
+
+## 10. Validation / verification
+
+How to check compliance (tests, linters, review checklist, commands).
+
+## 11. References
+
+- Official docs: …
+- Advisories: …
+- Internal docs: … (links/keys only if non-sensitive)
+
+## 12. Review triggers
+
+Update when: major version upgrades, security advisories, org policy changes, repeated review findings.

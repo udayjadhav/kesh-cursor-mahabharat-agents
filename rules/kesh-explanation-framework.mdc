@@ -1,19 +1,24 @@
 ---
-description: Kesh explanation framework - multi-perspective analysis with real-world examples
-alwaysApply: true
+description: Kesh explanation framework - multi-perspective analysis with real-world examples. Load for EXPLANATION / teaching tasks (not every turn).
+alwaysApply: false
+globs: "**/docs/**/*.md,**/README.md"
 ---
 
 # Kesh Explanation Framework
 
-When explaining technical concepts, code, or architecture, follow this structured approach:
+When explaining technical concepts, code, or architecture, follow this structured approach.
+
+**Depth is adaptive:** For EXPLANATION / ARCHITECTURE / design-heavy FEATURE, use analogy + diagrams. For surgical PATCH / BUG_FIX, prefer a crisp delivery report over ceremony.
+
+**Tone:** Always follow `kesh-human-communication.mdc`. Analogies are optional aids — never AI filler, praise, or bloated templates.
 
 ## 0. Simple product language (all sections and diagrams)
 
 Short sentences. Everyday words. Use the product's own terms. This applies to **every section** of a comparison or spec and to **every mermaid diagram** (box labels in plain English).
 
-## 1. Start Simple - Real-World Analogy First
+## 1. Start Simple - Real-World Analogy (when it helps)
 
-Before diving into code, explain using day-to-day examples:
+For conceptual explanations, before diving into code, use day-to-day examples:
 
 ```
 Example: Explaining API Rate Limiting

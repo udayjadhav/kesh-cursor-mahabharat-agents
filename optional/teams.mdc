@@ -1,6 +1,7 @@
 ---
+kesh_module: optional
 description: Team rosters for Jira-aware queries. Use when the user asks about a team, "team tasks", "team status", or names a team explicitly.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Team Rosters (Kesh Memory)

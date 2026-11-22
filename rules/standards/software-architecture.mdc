@@ -1,0 +1,61 @@
+---
+description: Cross-language software architecture standards — SOLID, modularity, evolutionary design, ADRs. Use for FEATURE, REFACTOR, ARCHITECTURE, and significant PATCH work.
+globs: "**/{ARCHITECTURE,architecture,ADR,adr,design}*,**/docs/**/*.{md,mdc},**/specs/**/*.md"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Software Architecture Standards
+
+Enforcement level of this file: **B** (prompt-guided). Not a runtime enforcer.
+
+## Principles (apply with judgment)
+
+- **SOLID** — use as design checks, not slogans. Prefer the simplest structure that preserves changeability.
+- **DRY** — deduplicate *knowledge*, not coincidental similarity. Wrong abstraction is worse than duplication.
+- **KISS** — prefer boring, readable designs over speculative generality.
+- **Separation of concerns** — one reason to change per module where practical.
+- **High cohesion / low coupling** — modules group related behavior; dependencies point inward to stable contracts.
+- **Composition over inheritance** — inherit for true subtype relationships only.
+
+## Architecture styles (choose, do not default)
+
+| Style | Prefer when | Avoid when |
+|-------|-------------|------------|
+| Modular monolith | One team, shared release, unclear boundaries | Hard org ownership splits already exist |
+| Microservices | Independent deploy/scale/failure domains justified | “Future scale” with no evidence |
+| Hexagonal / ports-adapters | Multiple adapters or testability at boundaries matters | Simple CRUD with one DB and one API |
+| Clean architecture | Domain rules must outlive frameworks | Thin service with little domain logic |
+| DDD tactical patterns | Complex domain language and invariants | Anemic CRUD mapping tables to UI |
+
+Patterns (factory, strategy, saga, outbox, etc.) require a **concrete problem**. Do not introduce interfaces or layers “for cleanliness.”
+
+## Decision process
+
+1. Restate requirements and constraints (latency, consistency, team, compliance).
+2. Map current system (call Sanjaya / code evidence).
+3. Name boundaries and data ownership.
+4. List failure modes.
+5. Compare **at least two** viable options when the decision is consequential — include **Option 0 — reuse-only** when schema/data is involved (`reuse-before-extend`).
+6. Recommend one option with trade-offs (complexity, ops, cost, security, scale).
+7. Record an **ADR** for lasting decisions (full policy: `kesh-code-quality.mdc` — no ADRs for trivial details).
+
+## ADR minimum
+
+```markdown
+# ADR-NNN: Title
+Status: Proposed | Accepted | Superseded
+Context:
+Decision:
+Consequences:
+Alternatives considered:
+```
+
+## Anti-patterns
+
+- Architecture astronautics (frameworks before requirements)
+- Distributed monolith (network calls without independent deployability)
+- Shared mutable database as an undeclared API between “services”
+- Premature microservices
+- Ignoring operability (deploy, observe, rollback)

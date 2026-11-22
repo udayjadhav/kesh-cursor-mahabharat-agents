@@ -1,0 +1,52 @@
+---
+description: Risk-based execution modes FAST / STANDARD / CRITICAL / INCIDENT_ARCHITECTURE — select by risk, escalate up only, never downgrade to save tokens.
+alwaysApply: false
+version: 2.5.0
+---
+
+
+# Execution Modes (Token-Aware Quality)
+
+> Outcomes per token — not cheapest AI. Spec: `kesh-agent-spec.mdc`. Router: `kesh-runtime-router.mdc`.
+
+## Modes
+
+| Mode | When | Delegation |
+|------|------|------------|
+| **FAST** | Simple explanations; isolated low-risk tasks | Minimal; deterministic checks if code touched |
+| **STANDARD** | Normal features, fixes, refactors, reviews | Implement + test + specialized independent review |
+| **CRITICAL** | Security, database, distributed, consequential prod-bound | Architecture as needed + implement + test + independent review + warranted gates |
+| **INCIDENT_ARCHITECTURE** | Production incidents; major system changes | Full **applicable** specialists + independent validation |
+
+## Default mapping (`task_class` → mode)
+
+| task_class | Default mode |
+|------------|--------------|
+| EXPLANATION | FAST |
+| INVESTIGATION (read-only) | FAST |
+| DEBUGGING / PATCH / BUG_FIX / FEATURE / REFACTOR / CODE_REVIEW | STANDARD |
+| DATABASE_CHANGE / SECURITY_CHANGE | CRITICAL |
+| ARCHITECTURE (material) / PRODUCTION_INCIDENT | INCIDENT_ARCHITECTURE |
+
+## Risk signals → escalate (never for cost alone)
+
+Escalate at least one level when any apply:
+
+- Auth, secrets, PII, payment, multi-tenant isolation  
+- Schema / migration / data backfill  
+- Distributed consistency, exactly-once, cross-service contracts  
+- Production mutation or incident  
+- Ambiguous requirements with high blast radius  
+
+**Forbidden:** downgrade CRITICAL → STANDARD (or lower) only to save tokens.
+
+## Mode vs quality
+
+| Mode | May skip | Must not skip |
+|------|----------|---------------|
+| FAST | Multi-agent ceremony, optional gates | Honesty if code/security risk appears → escalate |
+| STANDARD | Full org harvest if no footprint; optional Money Lens on tiny patches | Tests when code changes; Bhishma on shipped code |
+| CRITICAL | Irrelevant language standards | Security/DB standards; independent review; deterministic verification |
+| INCIDENT_ARCHITECTURE | Slow org digressions during active fire | Evidence-first; approval for consequential acts; validation before COMPLETE |
+
+CLI helper: `python3 scripts/modes/select_mode.py --task-class FEATURE --signals security,schema`

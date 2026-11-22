@@ -1,67 +1,65 @@
 # Rules Reference
 
-Cursor rules live in `rules/*.mdc`. Files with `alwaysApply: true` in frontmatter apply to every chat in that workspace (global when installed to `~/.cursor/rules/`).
+Cursor rules live under `rules/` (nested `standards/` included). Files with `alwaysApply: true` apply broadly when installed to `~/.cursor/rules/`. Glob-scoped rules load selectively (**C**).
 
 ## Core Kesh rules (required)
 
 | File | alwaysApply | Purpose |
 |------|-------------|---------|
-| `kesh-agent-spec.mdc` | yes | **Canonical contract** — 15 steps, tiers, models, skip logic, loops |
-| `kesh-runtime-router.mdc` | yes | Intent analyzer → agent selection (not keyword matching) |
-| `kesh-always-on.mdc` | yes | Route user instructions through Kesh by default |
-| `kesh-token-cache.mdc` | yes | Step 0.5 Cache Gate before Phase 1 |
-| `kesh-explanation-framework.mdc` | yes | Analogies, diagrams, multi-perspective synthesis in chat |
-| `kesh-external-output-voice.mdc` | yes | Scrub agent vocabulary for Confluence / Jira / PR / Slack |
-| `global-local-sync.mdc` | yes | `~/.cursor` global vs `<repo>/.cursor` local overrides |
+| `kesh-agent-spec.mdc` | yes | **Canonical contract** (evolving in 2.0 toward adaptive workflows) |
+| `kesh-runtime-router.mdc` | yes | Intent → agent selection |
+| `kesh-always-on.mdc` | yes | Route engineering work through Kesh by default |
+| `kesh-token-cache.mdc` | yes | Step 0.5 Cache Gate |
+| `kesh-knowledge-discovery.mdc` | yes | Tech detection, gap research, MDC propose/update |
+| `kesh-human-communication.mdc` | yes | Staff/Principal voice; paste-ready findings; no AI filler |
+| `kesh-code-quality.mdc` | yes | Code maintainability, comments, contracts, docs/ADRs (no doc spam) |
+| `kesh-niti.mdc` | yes | NITI telemetry, triggers, evaluation lenses, recommend-only loop |
+| `kesh-execution-modes.mdc` | no (via router/spec) | FAST / STANDARD / CRITICAL / INCIDENT_ARCHITECTURE |
+| `kesh-context-packaging.mdc` | no (via router/spec) | Per-agent context packages (no full-chat dumps) |
+| `kesh-quality-guardrails.mdc` | yes | Token savings never override correctness/security/tests |
+| `kesh-explanation-framework.mdc` | no (selective) | Chat explanation structure |
+| `kesh-external-output-voice.mdc` | no (when external paste) | Scrub agent vocabulary; channel packaging |
+| `global-local-sync.mdc` | no (agents/rules edits) | Global vs local overrides |
 
 ## Quality and design rules
 
 | File | alwaysApply | Purpose |
 |------|-------------|---------|
-| `reuse-before-extend.mdc` | yes | Option 0 reuse-only; field carrier inventory; consumer audit |
-| `dev-spec-authorship-voice.mdc` | yes | Specs read as engineer-authored (no AI meta, no section-sign glyph) |
+| `reuse-before-extend.mdc` | yes | Option 0 reuse-only; field carrier inventory |
+| `dev-spec-authorship-voice.mdc` | no (specs/docs globs) | Specs read as engineer-authored |
 | `dev-spec-scoping-defaults.mdc` | no | L1–L6 lifecycle tasks in dev specs |
+
+## Engineering standards (Kesh 2.0)
+
+See [STANDARDS.md](./STANDARDS.md). Path: `rules/standards/**` — `alwaysApply: false`, glob-selective.
+
+Includes Java/Quarkus, Python, React/TS, security, testing, architecture, microservices, distributed systems, database tree + engines, and optional Clojure pack.
 
 ## Optional / org-specific
 
 | File | Notes |
 |------|-------|
-| `teams.mdc` | Jira team roster **template** — replace with your org or delete |
-| `clojure-review.mdc` | Clojure code review conventions (`alwaysApply: false`) |
-| `clojure-daily-tips.mdc` | Clojure tips (`alwaysApply: false`) |
+| `optional/teams.mdc` | Jira roster template — copy into rules only if needed |
 
 ## Rule precedence
 
-1. `kesh-agent-spec.mdc` wins over any agent `.md` file
-2. Local `<repo>/.cursor/rules/*.mdc` overrides global `~/.cursor/rules/` for that repo
-3. Local `<repo>/.cursor/agents/*.md` overrides global agents for that repo
+1. `kesh-agent-spec.mdc` wins over agent `.md` files
+2. Local `<repo>/.cursor/rules/` overrides global for that repo
+3. Engine-specific DB standards override generic DB advice when they conflict
+4. Repository evidence overrides generic standards when they conflict
 
-## Key invariants (from spec)
+## Key invariants
 
 - Parth and Bhishma **must not** share the same model
-- Bhishma FAIL or Lakshman FAIL → loop to Parth (max 5)
-- Krishna KILL or Money Lens REJECT → stop
-- Vyasa never speculates — facts need citations
-- Skip agents only when inputs do not exist (not to save tokens)
-- Cache Gate skips are applicability skips (output already exists), not cost skips
+- No self-approval of implementation by the implementer
+- LLM review does not replace security scanners or test execution evidence
+- Skip agents by applicability and task class — not to inflate coverage arbitrarily
 
-## Editing rules after install
+## Editing after install
 
 ```bash
-# Global (all projects)
 vim ~/.cursor/rules/kesh-agent-spec.mdc
-
-# Single repo only
-vim my-repo/.cursor/rules/kesh-always-on.mdc
+vim ~/.cursor/rules/standards/java-quarkus.mdc
 ```
 
-After changes, restart Cursor or reload the window.
-
-## Syncing back to this kit
-
-When you improve rules on one machine:
-
-```bash
-cp ~/.cursor/rules/*.mdc /path/to/kesh-cursor-mahabharat-agents/rules/
-git commit -am "Sync rules from workstation"
-```
+Restart Cursor or reload the window after changes.

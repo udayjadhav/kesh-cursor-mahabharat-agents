@@ -1,0 +1,25 @@
+---
+description: MongoDB — document modelling, transactions limits, indexes, change streams.
+globs: "**/*mongo*"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# MongoDB
+
+Enforcement: **B**.
+
+## Distinctives
+
+- Embed vs reference based on access patterns and document size limits.
+- Multi-document transactions exist but have costs — prefer single-document atomicity when possible.
+- Indexes required for production query filters; unused indexes still cost writes.
+- Schema validation can help but is not a full relational constraint system.
+- Change streams / oplog consumers need idempotency.
+
+## Do not
+
+- Assume joins are free
+- Grow unbounded arrays in documents
+- Skip schema evolution planning for existing collections
