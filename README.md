@@ -65,21 +65,42 @@ Restart Cursor, then:
 
 **Canonical contract:** `rules/kesh-agent-spec.mdc` **v2.0.0** — when any file disagrees, the spec wins.
 
-## Adaptive flow (2.0)
+## Adaptive flow (2.6)
+
+Full stage-by-stage map (redo loops, per-class paths, agent catalog): **[docs/WORKFLOW.md](docs/WORKFLOW.md)**.
 
 ```mermaid
-flowchart TB
-  U[User request] --> EM{Incident?}
-  EM -->|Yes| INC[Evidence + mitigation + approval]
-  EM -->|No| CG[Cache Gate]
-  CG --> CL[Classify task_class]
-  CL --> SEL[Select minimum sufficient agents]
-  SEL --> STD[Load matching standards]
-  STD --> EX[Execute]
-  EX --> REP[Delivery report + status]
+flowchart TD
+  U([User request]) --> K[Kesh owns delivery]
+  K --> E{Emergency or PRODUCTION_INCIDENT?}
+  E -->|Yes| INC[Evidence → mitigation → human approval]
+  E -->|No| CG[Cache Gate]
+
+  CG --> CH{FULL / PARTIAL / MISS / STALE / BYPASS}
+  CH -->|FULL_HIT| SYN[Synthesize from cache]
+  CH -->|else| CL[Classify task_class]
+
+  CL --> MD[Select execution_mode — escalate only]
+  MD --> AG[Agents + specialists by signal]
+  AG --> SK[Progressive standards + skills]
+  SK --> CP[Per-agent context packages]
+  CP --> KG[Knowledge gate]
+  KG --> DT[Deterministic tools first]
+  DT --> EX[Understand / design / build]
+  EX --> SUT{Code change?}
+  SUT -->|Yes| LOOP[Sutradhar loop: Parth → Swachalit → critics — max 5]
+  SUT -->|No| GATES
+  LOOP --> GATES[Krishna / Money / Decision / Kripacharya]
+  GATES --> REP[Delivery report]
+  SYN --> REP
+  INC --> REP
+  REP --> ST[COMPLETE / PARTIAL / BLOCKED / REQUIRES_HUMAN_APPROVAL]
+  ST --> TEL[NITI record — out of band]
 ```
 
-Twelve task classes include `EXPLANATION`, `BUG_FIX`, `FEATURE`, `DATABASE_CHANGE`, `SECURITY_CHANGE`, `PRODUCTION_INCIDENT`, `CODE_REVIEW`, and more — see [docs/WORKFLOW.md](docs/WORKFLOW.md).
+**Roles:** Parth = implementation · Swachalit = tests · Sutradhar = loop orchestration (do not swap).
+
+Twelve task classes include `EXPLANATION`, `BUG_FIX`, `FEATURE`, `DATABASE_CHANGE`, `SECURITY_CHANGE`, `PRODUCTION_INCIDENT`, `CODE_REVIEW`, and more.
 
 **Delivery status:** `COMPLETE` | `PARTIAL` | `BLOCKED` | `REQUIRES_HUMAN_APPROVAL`  
 `COMPLETE` requires verification evidence (no fabricated test results).
