@@ -1,47 +1,39 @@
 # Optional / org-specific files
 
-These files are **examples**. Customise before use or exclude from install.
+Customise before use. These are **not** required for core Kesh.
 
-## `teams.mdc` (in main `rules/`)
+## Optional healthcare pack
 
-The shipped `rules/teams.mdc` is a **blank roster template**. On a new machine:
+See [`healthcare/README.md`](./healthcare/README.md). Install with `INSTALL_HEALTHCARE=1 ./install.sh`.  
+Keeps employer/domain naming out of the public core kit scan.
 
-1. Fill in your Atlassian site, cloud ID, projects, and people, or
-2. Delete `~/.cursor/rules/teams.mdc` after install if unused
+## `teams.mdc` (this directory)
 
-Template pattern:
-
-```markdown
-## Your Team Name
-
-| Name | Email | Jira Account ID |
-|------|-------|-----------------|
-| ... | ... | ... |
-
-### Default JQL
-assignee in ("account-id-1", ...) AND statusCategory != Done
-```
-
-## Clojure rules
-
-`clojure-review.mdc` and `clojure-daily-tips.mdc` apply only if you work in Clojure. Remove from `rules/` in this kit if not needed:
+Blank Jira team roster template. Copy into `~/.cursor/rules/` only if you need it:
 
 ```bash
-rm rules/clojure-*.mdc
+cp optional/teams.mdc ~/.cursor/rules/teams.mdc
 ```
+
+Set `alwaysApply: true` only after you fill real rosters.
+
+## Clojure standards
+
+Shipped under `rules/standards/clojure-*.mdc` with Clojure globs (`alwaysApply: false`). Remove if unused:
+
+```bash
+rm rules/standards/clojure-*.mdc
+```
+
+## Knowledge modules
+
+See repo `knowledge/`. Optional install to `~/.cursor/knowledge/kesh/` (`INSTALL_KNOWLEDGE=1`).
 
 ## Vyasa external sources
 
-Vyasa expects optional integrations:
+Optional integrations: Atlassian (Confluence/Jira), helpcenter, developer docs, status pages. Without them Vyasa returns `no_context`.
 
-- Atlassian Confluence + Jira (MCP or API)
-- Public helpcenter / developer docs / status pages (web search)
-
-Without configuration, Vyasa returns `no_context` and the workflow continues.
-
-## Minimal kit (smaller install)
-
-For a minimal portable install, copy only:
+## Minimal kit
 
 ```
 agents/*.md
@@ -54,4 +46,4 @@ rules/global-local-sync.mdc
 skills/xray/*
 ```
 
-Add other rules as needed.
+Add `rules/standards/**` as needed for your stacks.

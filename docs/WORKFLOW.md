@@ -1,195 +1,102 @@
-# Kesh Workflow — 15-Step Execution Flow
+# Kesh Workflow 2.0 — Adaptive Execution
 
-> **Authority:** `rules/kesh-agent-spec.mdc`. This document is a readable guide; the spec is the contract.
+> **Authority:** `rules/kesh-agent-spec.mdc` v2. This document is a readable guide; the spec is the contract.
 
-## Real-world analogy
+## Analogy
 
-A software task goes through a **hospital**:
+A software request goes through a **clinic**, not a full hospital for every cough:
 
-| Hospital | Kesh |
-|----------|------|
-| Triage nurse | Intent classification + Kesh router |
-| Chart check | Cache Gate — reuse a diagnosis already on file |
-| Specialists (parallel) | Vidura, Sanjaya, Vyasa, then Vishwakarma + Sarthi |
-| Surgery | Parth + Swachalit |
-| Independent second opinions | Bhishma, Lakshman, Draupadi (parallel) |
-| Ethics / cost committee | Krishna, Money Lens |
-| Chief of medicine | Decision Engine |
-| Discharge review | Kripacharya → Kesh SHIP / NO-SHIP |
+| Clinic | Kesh |
+|--------|------|
+| Triage | Task classification (12 classes) |
+| Chart check | Cache Gate |
+| Right specialists | Minimum sufficient agents |
+| Surgery | Parth + Swachalit when building |
+| Second opinion | Bhishma (± Lakshman / Draupadi) |
+| Ethics / cost (optional) | Krishna / Money Lens (advisory on remediation) |
+| Discharge | Delivery status with evidence |
 
-## Full flow diagram
+## Flow
 
 ```mermaid
 flowchart TD
-  START([User request]) --> CLASS{Input type?}
-  CLASS -->|Emergency explicit| EMRG[Emergency override]
+  START([User request]) --> CLASS{task_class}
+  CLASS -->|PRODUCTION_INCIDENT| INC[Evidence → mitigation → approval]
   CLASS -->|Normal| CACHE
 
-  subgraph CACHE [Step 0.5 — Cache Gate]
-    C1[Probe knowledge/cache, session, transcripts, KB]
+  subgraph CACHE [Cache Gate]
+    C1[Probe cache / session / KB]
     C1 --> C2{Hit?}
-    C2 -->|FULL_HIT| REUSE[Reuse cached synthesis]
-    C2 -->|PARTIAL_HIT| PART[Run only missing or stale agents]
-    C2 -->|MISS| S1
+    C2 -->|FULL| REUSE[Reuse cached outputs]
+    C2 -->|PARTIAL / MISS| SEL
   end
 
-  subgraph S1 [Stage 1 — parallel]
-    direction LR
-    V1[Vidura requirements]
-    S1A[Sanjaya code]
-    Y1[Vyasa org history]
-  end
-
-  PART --> MERGE
-  S1 --> MERGE[Merge context]
-  MERGE --> S2
-
-  subgraph S2 [Stage 2 — parallel]
-    direction LR
-    VW[Vishwakarma architecture]
-    SA[Sarthi plan]
-  end
-
-  S2 --> BUILD
-
-  subgraph BUILD [Phase 2 — Build]
-    P[Parth implement]
-    SW[Swachalit tests]
-    P --> SW
-  end
-
-  BUILD --> CRIT
-
-  subgraph CRIT [Phase 3 — Critique always parallel]
-    direction LR
-    B[Bhishma review]
-    L[Lakshman QA]
-    D[Draupadi user impact]
-  end
-
-  B -->|FAIL| LOOP
-  L -->|FAIL| LOOP
-  LOOP[Loop to Parth max 5x] --> P
-  B -->|PASS| GATES
-  L -->|PASS| GATES
-  D --> GATES
-
-  subgraph GATES [Phase 4 — Gates]
-    direction LR
-    K[Krishna Strong/Weak/KILL]
-    ML[Money Lens INVEST/DEFER/REJECT]
-    K --> DE[Decision Engine GO/CONDITIONAL/NO-GO]
-    ML --> DE
-  end
-
-  K -->|KILL| STOP([STOP])
-  ML -->|REJECT| STOP
-  DE -->|NO-GO| STOP
-
-  GATES --> FINAL
-  REUSE --> FINAL
-  subgraph FINAL [Phase 5 — Sequential]
-    KR[Kripacharya validate]
-    KE[Kesh SHIP / NO-SHIP]
-    KR --> KE
-  end
-
-  EMRG --> EMRG_END[Sanjaya + Parth parallel, Bhishma once, post-mortem within 24h]
+  SEL[Select agents from template] --> RUN[Execute]
+  RUN --> LOOP{Critique FAIL?}
+  LOOP -->|Yes max 5| RUN
+  LOOP -->|No| REP[Delivery report]
+  REUSE --> REP
+  INC --> REP
+  REP --> STATUS[COMPLETE / PARTIAL / BLOCKED / REQUIRES_HUMAN_APPROVAL]
 ```
 
-## Step-by-step table
+## Task classes
 
-| Step | Phase | Agent | Tier | Blocks? | On failure |
-|------|-------|-------|------|---------|------------|
-| 0.5 | Cache | Cache Gate | — | No | MISS → full flow |
-| 1 | Understand | Vidura | A | No | — |
-| 2 | Understand | Sanjaya | A | No | — |
-| 3 | Understand | Vyasa | A | No | `no_context` does not block |
-| 4 | Understand | Vishwakarma | A | No | — |
-| 5 | Understand | Sarthi | A | No | — |
-| 6 | Build | Parth | B | No | — |
-| 7 | Build | Swachalit | B | No | — |
-| 8 | Critique | Bhishma | C | **FAIL** | Loop → step 6 |
-| 9 | Critique | Lakshman | C | **FAIL** | Loop → step 6 |
-| 10 | Critique | Draupadi | C | Advisory | — |
-| 11 | Gates | Krishna | A | **KILL** | Full stop |
-| 12 | Gates | Money Lens | A | **REJECT** | Full stop |
-| 13 | Gates | Decision Engine | A | NO-GO / CONDITIONAL | Stop or conditions |
-| 14 | Final | Kripacharya | A | NOT-READY | Address gaps |
-| 15 | Final | Kesh | A | NO-SHIP | Do not deliver |
+| Class | Typical path |
+|-------|----------------|
+| EXPLANATION | Sanjaya and/or Vyasa → Kesh |
+| INVESTIGATION | Sanjaya (± Vyasa) |
+| DEBUGGING | Symptom → evidence → fix → regression → Bhishma |
+| PATCH / BUG_FIX | Light understand → Parth → Swachalit → Bhishma (± Lakshman) |
+| FEATURE | Vidura → Sanjaya → design/plan → build → critique → gates → close |
+| REFACTOR | Sanjaya → Parth → tests → critique |
+| ARCHITECTURE | Vishwakarma (+ADR) → Krishna → Decision Engine |
+| DATABASE_CHANGE | DB standards → design → migrate carefully → tests → review |
+| SECURITY_CHANGE | Threat-aware implement → tests → Bhishma (± scanners) |
+| PRODUCTION_INCIDENT | Evidence first; no silent prod mutation |
+| CODE_REVIEW | Bhishma ∥ Lakshman ∥ Draupadi |
 
-## Parallelization (wall-clock stages)
+Full templates: `rules/kesh-agent-spec.mdc`.
 
-| Stage | Agents (parallel) | Waits for |
-|-------|-------------------|-----------|
-| 0.5 | Cache probe (cheap) | — |
-| 1 | Vidura ∥ Sanjaya ∥ Vyasa | Cache miss / partial |
-| 2 | Vishwakarma ∥ Sarthi | Stage 1 merge |
-| 3 | Parth (per file) ∥ … | Stage 2 |
-| 4 | Swachalit | Parth lane(s) |
-| 5 | Bhishma ∥ Lakshman ∥ Draupadi | Build artifact |
-| 6 | Krishna ∥ Money Lens | Critique merge |
-| 7 | Decision Engine | Both gates |
-| 8 | Kripacharya → Kesh | Decision Engine |
+## Gates
 
-## Build–critique loop
+| Gate | Effect |
+|------|--------|
+| Bhishma / Lakshman FAIL | Loop to Parth (max 5) |
+| Krishna KILL | Stop |
+| Money Lens | Advisory — **no REJECT-stop** on mandatory remediation |
+| Critical tests / security | Do not continue toward COMPLETE |
+| Decision Engine | GO / CONDITIONAL / NO-GO (ROI alone cannot NO-GO mandatory fixes) |
 
-```
-Parth → Swachalit → Bhishma + Lakshman (parallel)
-                         │
-                    FAIL ├──→ back to Parth (max 5 iterations)
-                         │
-                    PASS └──→ Draupadi → Phase 4 gates
-```
+## Delivery statuses
 
-Iteration 6+ → escalate to Vishwakarma for re-architecture.
+| Status | Meaning |
+|--------|---------|
+| COMPLETE | Done + required verification evidence |
+| PARTIAL | Progress with gaps |
+| BLOCKED | Needs external input |
+| REQUIRES_HUMAN_APPROVAL | Prod / destructive DB / secrets / merge-deploy |
 
-## Input types
+## Standards
 
-| Type | Description | Typical skips |
-|------|-------------|---------------|
-| CODE_INPUT | Repo / files present | None (full flow) |
-| PATCH_INPUT | Diff / PR review only | Parth, Swachalit if no build |
-| IDEA_INPUT | Vague idea | — |
-| DEFINED_INPUT | Clear requirements | Light Vidura |
-| CACHE_FULL_HIT | Valid cached synthesis | Agents whose output is already fresh |
-| CACHE_PARTIAL_HIT | Some agents stale / missing | Only the missing / stale agents run |
+Glob-selective modules under `rules/standards/**` — see [STANDARDS.md](./STANDARDS.md).
 
-Skips are **applicability-only**, never cost-based. See spec "Skip Logic" and `kesh-token-cache.mdc`.
+## Emergency / incident
 
-## Emergency override
+Explicit incident language or class `PRODUCTION_INCIDENT`: prioritize diagnosis and safe mitigation; human approval for consequential actions.
 
-Triggered **only** when the user explicitly says: production down, security breach, data loss, customer escalation critical, or "fast mode" / "emergency mode".
+## Execution modes (token-aware)
 
-- Skip Phase 1 → Sanjaya + Parth in parallel
-- Vyasa skipped
-- Bhishma once (no loop)
-- Cache Gate is not used as a shortcut into emergency
-- Mandatory full 15-step post-mortem within 24h
+Select `execution_mode` after `task_class`: FAST / STANDARD / CRITICAL / INCIDENT_ARCHITECTURE. Escalate on risk; never downgrade for cost. Package context per agent; load standards progressively; run deterministic checks before extra LLM loops. See `kesh-execution-modes.mdc` and `docs/kesh-2.0/TOKEN-OPTIMIZATION.md`.
 
-## Phase 4 outputs (what you get)
+## NITI (learning loop — out of band)
 
-**Krishna** — assumptions challenged, failure modes, Data Model Reuse Audit, verdict: STRONG / WEAK / KILL
+Not part of every delivery. After meaningful work, record an execution (`scripts/niti/record_execution.py`). When counters hit 5 or 20 (persisted in `~/.cursor/niti/state.json`), or on failure / demand / kit before-after, run NITI for a human health report. Optional hooks can capture subagent events and nudge via `stop` `followup_message` — **not** cron. See `rules/kesh-niti.mdc` and `docs/kesh-2.0/NITI-AUDIT.md`.
 
-**Money Lens** — scale, revenue, leverage, cost → INVEST / DEFER / REJECT
+## Related
 
-**Decision Engine** — tradeoff matrix (including Option 0), risk scores (tech/biz/customer/time), **GO / CONDITIONAL / NO-GO**, prioritized next actions
-
-## Kesh modular files
-
-These support the supervisor without replacing the spec:
-
-| File | Purpose |
-|------|---------|
-| `agents/kesh-flows.md` | Flow control, input classification, cache gate |
-| `agents/kesh-context.md` | Context handoff between agents |
-| `agents/kesh-output.md` | Output formatting |
-| `agents/kesh-rules.md` | Operational rules index |
-
-## Related rules
-
-- `kesh-runtime-router.mdc` — intent-based routing
-- `kesh-always-on.mdc` — route all instructions through Kesh
+- `kesh-runtime-router.mdc` — classification
 - `kesh-token-cache.mdc` — Cache Gate
-- `reuse-before-extend.mdc` — Option 0 reuse-only before new schema
-- `kesh-external-output-voice.mdc` — scrub agent names for Confluence / Jira / PR
+- `kesh-output.md` — report template
+- `kesh-niti.mdc` — telemetry + NITI triggers
+- `hooks/` — optional executable shell gates + NITI telemetry templates

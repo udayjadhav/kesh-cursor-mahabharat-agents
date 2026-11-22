@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kesh-niti-state",
+  "type": "object",
+  "required": ["version", "meaningful_completed_count", "since_lightweight", "since_deep"],
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "meaningful_completed_count": { "type": "integer", "minimum": 0 },
+    "since_lightweight": { "type": "integer", "minimum": 0 },
+    "since_deep": { "type": "integer", "minimum": 0 },
+    "last_lightweight_at_count": { "type": ["integer", "null"] },
+    "last_deep_at_count": { "type": ["integer", "null"] },
+    "pending_trigger": {
+      "type": ["string", "null"],
+      "enum": [null, "lightweight", "deep", "post_incident", "before_after", "on_demand"]
+    },
+    "analyzed_execution_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "analyzed_execution_ids_cap": { "type": "integer", "default": 500 },
+    "updated_at": { "type": ["string", "null"] }
+  }
+}

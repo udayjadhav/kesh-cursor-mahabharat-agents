@@ -1,0 +1,46 @@
+---
+description: Cross-cutting database design — modelling, keys, constraints, evolution mindset. Engine-specific files override generic advice when they conflict.
+globs: "**/*.{sql,cql},**/migrations/**,**/db/**,**/database/**,**/liquibase/**,**/flyway/**,**/*schema*"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Database Design Standards
+
+Enforcement: **B**. Engines are **not** interchangeable — see `engines/` and workload-type modules.
+
+## Before any significant schema change, evaluate
+
+1. Existing data volume and shape
+2. Existing application versions in production
+3. Migration ordering and expand/contract needs
+4. Locking and availability impact
+5. Backfill strategy
+6. Read/write compatibility during rollout
+7. Rollback feasibility (and its limits)
+8. Operational risk (disk, replication, jobs)
+
+## Modelling
+
+- Start from access patterns and invariants, not only ER diagrams.
+- Normalize for transactional integrity; denormalize deliberately for read paths with clear ownership of updates.
+- Every table needs a clear primary key; foreign keys where the engine and team practice support them.
+- Explicit nullability; defaults that match domain truth.
+- Soft deletes only with a query discipline and retention plan.
+
+## Workload split
+
+| Workload | Typical systems | Do not |
+|----------|-----------------|--------|
+| OLTP / transactional | PostgreSQL, CockroachDB, Spanner, MySQL | Treat like a warehouse |
+| Analytical / OLAP | BigQuery, warehouses | Use as primary transactional store |
+| Cache / ephemeral | Redis | Source of truth for critical durable state |
+| Search | Elasticsearch/OpenSearch | System of record for money/identity |
+| Document | MongoDB | Assume relational constraints exist |
+
+## Compatibility
+
+- Prefer expand → migrate → contract.
+- Dual-write/dual-read only with explicit cutover and verification.
+- Never assume rollback undoes data mutations cleanly.

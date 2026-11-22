@@ -1,0 +1,24 @@
+---
+description: MySQL / InnoDB — locking, isolation, online DDL caveats.
+globs: "**/*mysql*,**/mariadb/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# MySQL
+
+Enforcement: **B**. Verify engine (InnoDB vs others) and major version.
+
+## Distinctives
+
+- InnoDB row locking + gap locks depending on isolation level.
+- `REPEATABLE READ` default on many deployments — know phantom behavior.
+- Online DDL support varies by version and operation; check before production alter.
+- Character sets/collations affect uniqueness and comparisons — be explicit (utf8mb4).
+- Careful with `GROUP BY` / ONLY_FULL_GROUP_BY modes.
+
+## Do not
+
+- Assume PostgreSQL DDL/lock semantics
+- Ignore charset conversions in migrations

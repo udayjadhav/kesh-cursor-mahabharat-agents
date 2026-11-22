@@ -1,0 +1,128 @@
+---
+description: Mandatory code quality, comments, contracts, and documentation standards for every agent that creates, modifies, reviews, or documents code.
+alwaysApply: true
+version: 2.3.0
+---
+
+# Code Quality, Documentation & Engineering Standards (Mandatory)
+
+> Applies to **Parth, Swachalit, Bhishma, Vishwakarma, Sutradhar, Kesh**, and any agent that touches code or engineering docs.  
+> Language packs: `rules/standards/**`. Communication voice: `kesh-human-communication.mdc`.  
+> **Goal:** clarity and maintainability — not maximum Markdown volume.
+
+**Enforcement:** **B** (prompt). Prefer repo **D/E** tools (lint/format/CI) when present.
+
+## 1. Repository-first
+
+Before writing or changing code:
+
+1. Inspect structure, language, framework, **actual versions**  
+2. Read relevant project docs  
+3. Study nearby similar implementations  
+4. Note naming, package boundaries, patterns  
+5. Note lint/format/static-analysis config  
+6. Note test conventions  
+7. Identify affected API / DB / event contracts  
+
+Follow existing conventions unless there is a concrete reason to improve them.  
+Do not introduce a preferred style or framework casually.  
+If conventions are inconsistent or harmful, say so and recommend one approach.  
+Never assume dependency versions without checking the repo.
+
+## 2. Readability and maintainability
+
+Apply when useful: SOLID, DRY (no premature abstraction), KISS, separation of concerns, high cohesion / low coupling, clear ownership, composition over inheritance, explicit dependencies, predictable errors, consistent naming, small focused units, appropriate encapsulation.
+
+Every change should answer:
+
+- Simplest correct solution?  
+- Another engineer can understand it quickly?  
+- Responsibilities clear? Side effects visible?  
+- Failures handled? Independently testable? Safely changeable?
+
+Avoid: god classes, deep nesting, magic numbers, unnecessary interfaces, premature generalization, duplicated business logic, hidden side effects, parameter sprawl, needless static state, swallowed/broad empty catches, dead code, unused deps, over-engineered patterns.
+
+Do **not** drive-by refactor unrelated code for aesthetics.
+
+## 3. Naming
+
+Names communicate intent; follow language conventions (see `java-quarkus`, `python`, `react-typescript`).
+
+Avoid vague names (`data`, `obj`, `temp`, `process`, `manager`, `helper`, `common`, `util`) unless context makes meaning clear. Prefer business intent over mechanics.
+
+## 4. Comments
+
+Explain what the code **cannot** easily say: why, non-obvious business rules, constraints/assumptions, concurrency/transactions, workarounds, security, performance rationale, external/compatibility quirks, complex algorithms, intentional deviations.
+
+Do **not** narrate obvious code. Remove stale comments; update when behaviour changes; no commented-out code; no TODOs without actionable context; never invent business rules in comments; do not use comments to hide confusing code.
+
+## 5. Public contracts
+
+Document interfaces others depend on: REST, request/response models, public services, events, shared libs, public Python APIs, reusable React components, significant DB interfaces.
+
+**APIs:** purpose, method/path, authn/z, params/body, responses, validation, errors, idempotency, pagination/filtering, compatibility. Prefer OpenAPI when the repo uses it.
+
+**Events:** name/purpose, producers/consumers, schema, required fields, versioning, delivery/ordering, duplicates, retry/DLQ.
+
+Docs must match implementation.
+
+## 6. Language-specific docs
+
+- **Java/Quarkus:** useful JavaDoc on non-obvious public contracts; CDI/config/REST/tx/messaging/native notes when relevant — not redundant name-echo docs.  
+- **Python:** useful docstrings (repo style); params/returns/exceptions/side effects; types in annotations, not duplicated fluff.  
+- **React/TS:** document reusable components/hooks when behaviour isn’t obvious; prefer types over comment contracts; examples for complex shared components.
+
+## 7. Database docs
+
+Significant schema work explains: purpose, relationships, keys, indexes (and query patterns), uniqueness, ownership, retention, query patterns, tx needs, migration deps, backfill, rollback limits.
+
+Migrations: what/why, backward compatibility, ops impact, locks/downtime, backfill, recovery. Do not invent production workload facts.
+
+## 8. Tests
+
+Behaviour-oriented names (scenario + expectation + boundaries). Document complex fixtures/mocks. Regression tests for bug fixes when practical. Never claim unmeasured coverage. See `rules/standards/testing.mdc`.
+
+## 9. Project documentation structure
+
+Inspect existing `docs/` first. **Do not** create the full tree below by default — add/update only what adds value.
+
+Recommended (optional) layout:
+
+```text
+docs/
+├── README.md / architecture/ / development/ / api/
+├── database/ / operations/ / security/
+└── architecture/decisions/ADR-*.md
+```
+
+## 10. README quality
+
+Independently deployable services should have a useful README: purpose, boundaries, tech/versions, architecture sketch, prerequisites, setup, config, run, test, build, deps, links, limitations. No secrets.
+
+## 11. ADRs
+
+For decisions that materially affect architecture or long-term maintenance — see `software-architecture.mdc` ADR shape. Not for trivial details.
+
+## 12. Diagrams
+
+Use when they improve understanding (Mermaid preferred). Reflect **actual** architecture; label clearly; update when design changes; never present aspirational design as current production.
+
+## 13. Keep docs in sync with the change
+
+When a feature changes: public contracts, config, schema, ops procedures, architecture, setup/tests — update the matching docs in the **same** task. Remove obsolete content safely. One source of truth; avoid duplicate docs.
+
+## 14. Prefer executable enforcement
+
+Use the repo’s existing Checkstyle/Spotless/Ruff/ESLint/Prettier/CI/secret scanners/etc. Do not bolt on every tool. Do not reformat unrelated files. Assess cost before adding deps.
+
+## 15. Review checklist (Bhishma)
+
+Intent clear? Names meaningful? Size/responsibilities OK? Comments necessary/accurate? Public contracts documented? Errors understandable? Tests readable? Decisions explained? README/docs updated when needed? Diagrams accurate? Redundant/misleading docs? Maintainable without the author?
+
+Report doc gaps as actionable findings. Do **not** nag for missing docs on trivial private implementation.
+
+## 16. Acceptance
+
+Docs are not “done” because Markdown was generated. Check accuracy, match to code, decision/constraints coverage, concision/discoverability, onboarding value, useful comments, public contracts, outdated docs updated, automation where feasible.
+
+**Final principle:** Write code that explains itself. Comment the *why*. Document the system, contracts, decisions, and operation. Never generate documentation to inflate file count.

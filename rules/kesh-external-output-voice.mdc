@@ -1,9 +1,19 @@
+---
+description: Scrub Kesh agent vocabulary from Confluence, Jira, PR, Slack, and other external artifacts — write in the operator's voice. Load when producing external paste.
+alwaysApply: false
+version: 2.2.0
+---
+
 # Kesh External-Output Voice
 
 > **Authority:** Part of the Kesh agent workflow (canonical contract:
-> `~/.cursor/rules/kesh-agent-spec.mdc`). When this file conflicts with
+> `kesh-agent-spec.mdc`). When this file conflicts with
 > `kesh-always-on.mdc` or `kesh-runtime-router.mdc` on **how to write external
 > artifacts**, this file wins.
+>
+> Content quality (tone, finding shape, no AI filler) is defined by
+> `kesh-human-communication.mdc`. This file adds **vocabulary scrubbing** and
+> **channel packaging** for anything leaving Cursor.
 
 ## What this rule covers
 
@@ -127,12 +137,55 @@ breakdown" / "the multi-agent verdict" inside Cursor chat → vocabulary is
 allowed (chat is internal). But the moment that content gets piped into a
 Confluence page or Jira ticket, it must be scrubbed.
 
+## Channel packaging examples (scrubbed)
+
+### GitHub PR review comment
+
+```text
+[HIGH] Order persistence can leave unpaid orders
+
+`OrderService.java:142`
+
+Order is committed before payment. If payment write fails afterward, we keep
+an order with no payment row.
+
+Recommendation: same DB transaction if possible; otherwise outbox/Saga per
+our usual cross-service pattern.
+
+Evidence: `createOrder` commits at L138; `savePayment` starts at L150.
+```
+
+### Slack
+
+```text
+[HIGH] Order/payment inconsistency risk — `OrderService.java:142`
+Order commits before payment; payment failure can orphan orders.
+Rec: single TX or outbox/Saga. Can paste full note into the PR if useful.
+```
+
+### Confluence / design note
+
+```text
+## Order and payment write ordering
+
+Observation: the service persists the order, then the payment, in separate
+steps without a shared transactional boundary (see OrderService around line 142).
+
+Impact: a failure after the order commit can leave orders without payments.
+
+Recommendation: align with our consistency patterns (single transaction where
+feasible; otherwise transactional outbox or saga). Document the chosen approach
+in the service ADR if this spans services.
+```
+
+Produce the channel the user asked for. If they asked for “ready to post,” give paste-ready text only (plus a one-line chat note if needed).
+
 ## Cross-references
 
 | Concern | File |
 |---|---|
-| Kesh canonical contract | `~/.cursor/rules/kesh-agent-spec.mdc` |
-| Always-on routing | `~/.cursor/rules/kesh-always-on.mdc` |
-| Runtime router | `~/.cursor/rules/kesh-runtime-router.mdc` |
-| Explanation framework (chat-internal) | `~/.cursor/rules/kesh-explanation-framework.mdc` |
-| **External output voice (this file)** | `~/.cursor/rules/kesh-external-output-voice.mdc` |
+| Human communication quality | `kesh-human-communication.mdc` |
+| Kesh canonical contract | `kesh-agent-spec.mdc` |
+| Always-on routing | `kesh-always-on.mdc` |
+| Runtime router | `kesh-runtime-router.mdc` |
+| Explanation framework (chat-internal) | `kesh-explanation-framework.mdc` |

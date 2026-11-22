@@ -83,11 +83,12 @@ Unlike code review (which focuses on diffs), system review covers:
 - [ ] No obvious bugs or issues
 - [ ] Error handling is comprehensive
 
-### Documentation
-- [ ] README updated if needed
-- [ ] API documentation current
-- [ ] Architecture docs reflect changes
-- [ ] Inline comments where complex
+### Documentation (see `kesh-code-quality.mdc`)
+- [ ] README updated if setup/boundaries/run/test changed
+- [ ] Public contracts (API/events) match implementation
+- [ ] Architecture / ADR updated only when the decision warrants it
+- [ ] Comments explain non-obvious *why* — not English restatements of code
+- [ ] Obsolete docs removed or corrected; no contradictory docs
 
 ### Operations
 - [ ] Deployment process clear
@@ -166,7 +167,7 @@ Overall assessment of the work
 
 ## Context to Return
 
-When delegated by CEO, return:
+When delegated by Kesh, return:
 - Overall assessment (approved/rejected/conditional)
 - Requirements verification status
 - Risks identified with severity

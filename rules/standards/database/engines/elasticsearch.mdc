@@ -1,0 +1,24 @@
+---
+description: Elasticsearch / OpenSearch — search indexes, mappings, refresh, not system of record.
+globs: "**/*elastic*,**/*opensearch*,**/search-index/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Elasticsearch / OpenSearch
+
+Enforcement: **B**.
+
+## Distinctives
+
+- Mappings are critical; dynamic mapping surprises cause pain — define explicitly for production indexes.
+- Near-real-time search: refresh interval vs durability/visibility trade-offs.
+- Index lifecycle (rollover, hot-warm) for time-series logs/events.
+- Queries can be expensive; page carefully; avoid deep pagination antipatterns.
+- Keep authoritative business state in an OLTP store; search is a projection.
+
+## Do not
+
+- Treat search hits as transactional truth
+- Change mappings incompatibly without reindex plan

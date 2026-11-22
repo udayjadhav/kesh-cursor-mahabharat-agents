@@ -1,0 +1,24 @@
+---
+description: BigQuery — analytical warehouse patterns, partitioning, clustering, cost control.
+globs: "**/*bigquery*,**/*bq*,**/*.bq.sql"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# BigQuery
+
+Enforcement: **B**. Analytical — not an OLTP store.
+
+## Distinctives
+
+- Columnar, append-oriented; optimize for bytes scanned.
+- Partition and cluster tables to match filter patterns.
+- Prefer scheduled query / ELT patterns over row-level mutation heavy designs.
+- Streaming inserts and DML have different cost/consistency profiles — know which you use.
+- IAM and dataset-level access control matter for data privacy.
+
+## Do not
+
+- Use as primary transactional database
+- Run unbounded select * jobs in production schedules

@@ -1,0 +1,24 @@
+---
+description: Redis — cache, ephemeral state, data structures. Not a durable system of record unless explicitly designed and accepted.
+globs: "**/*redis*,**/cache/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Redis
+
+Enforcement: **B**.
+
+## Distinctives
+
+- Use as cache, rate-limit, lock, or ephemeral queue — document durability expectations.
+- Set TTLs; plan stampedes (soft/hard expiration strategies).
+- Key naming conventions and memory eviction policies matter.
+- Distributed locks: understand safety limits; prefer established libraries.
+- Persistence (RDB/AOF) is not a substitute for a primary database for critical business data unless explicitly architected.
+
+## Do not
+
+- Store the only copy of financial or identity source-of-truth data without an approved design
+- Ignore hot key concentration

@@ -1,0 +1,34 @@
+---
+description: Database performance — indexing, plans, pooling, hot paths. Measure before changing.
+globs: "**/*.{sql},**/migrations/**,**/EXPLAIN*,**/performance/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Database Performance Standards
+
+Enforcement: **B**.
+
+## Process
+
+1. Define the slow operation and SLO.
+2. Capture evidence (`EXPLAIN`/`EXPLAIN ANALYZE`, slow query logs, metrics).
+3. Fix the dominant cause (query shape, missing index, lock, pool exhaustion, chatty ORM).
+4. Re-measure.
+
+## Common levers
+
+- Appropriate indexes (and removing unused ones)
+- Query rewrite; avoid N+1
+- Connection pool sizing vs DB `max_connections`
+- Batching and pagination
+- Caching with explicit invalidation — not as a substitute for a bad query
+- Partitioning for very large tables when engine and access patterns fit
+
+## Anti-patterns
+
+- Adding indexes blindly
+- Raising timeouts to “fix” contention
+- Caching without coherency strategy
+- Premature sharding

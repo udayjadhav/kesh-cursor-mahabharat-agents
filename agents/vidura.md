@@ -100,7 +100,7 @@ What problem are we solving and for whom?
 
 ## Context to Return
 
-When delegated by CEO, return:
+When delegated by Kesh, return:
 - Structured requirements document
 - List of open questions (if any)
 - Recommended next step (usually planning_agent)

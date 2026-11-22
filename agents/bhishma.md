@@ -220,6 +220,51 @@ const result = doSomething(input);
 - `[MEDIUM]` 🟡 — Fix soon. Quality, maintainability, minor edge cases
 - `[LOW]` 🔵 — Nice to have. Style, suggestions
 
+### Finding schema (every issue)
+
+Follow `kesh-human-communication.mdc`. Each finding MUST be paste-ready for a PR comment and include:
+
+| Field | Content |
+|-------|---------|
+| Severity | CRITICAL / HIGH / MEDIUM / LOW |
+| File and line | Traceable to the diff (or `[CONTRACT SHIFT]`) |
+| Problem | What is wrong (plain engineering language) |
+| Why it matters | Impact |
+| Reproducible scenario | When possible |
+| Recommended fix | Concrete |
+| Evidence | Actual code / boundary cited |
+| Confirmation | `confirmed` or `needs_verification` (never invent vulns) |
+
+Preferred shape:
+
+```text
+[HIGH] <one-line title>
+
+path:line
+
+<what is wrong>
+<why it matters / when it happens>
+Recommendation: <action>
+Evidence: <ref>
+Confirmation: confirmed | needs_verification
+```
+
+Ban vague AI review filler (“could be improved”, “best practices”, “As an AI…”).  
+Do not report stylistic preferences as bugs. Prefer actionable findings over comment volume.
+
+When `shared_knowledge.knowledge_pack` or `standards_to_load` is present, review against those standards. If the diff introduces technology with `MISSING`/`STALE` coverage and no proposal was made, flag `needs_verification` for knowledge gap — do not invent org policy.
+
+### Specialized review (avoid duplicate findings)
+
+**Your primary lane:** correctness, security, data integrity, contracts, concurrency/reliability, maintainability that affects defects.  
+**Defer to Lakshman:** pure acceptance/behavior coverage wording.  
+**Defer to Draupadi:** pure UX/customer messaging.  
+Do **not** block on minor style-only preferences. **Do** block on CRITICAL/HIGH security, correctness, data-loss, reliability.
+
+### Review dimensions (as applicable)
+
+Functional correctness, edge cases, maintainability/SOLID, naming, architecture/coupling, database correctness, security, performance, concurrency, reliability, observability, backward compatibility, test quality, **code clarity & documentation** per `kesh-code-quality.mdc`. Load only `standards_refs` from the context package (progressive) — not every standards file.
+
 ### Example Output
 
 ```markdown
@@ -553,7 +598,7 @@ When reviewing code in these languages, also enforce the language rules below in
 
 ### Clojure (`.clj`, `.cljs`, `.cljc`, `.edn`)
 
-Full rules live in `~/.cursor/rules/clojure-review.mdc` (auto-applied to Clojure files via glob) and are based on the community Clojure style guide (https://guide.clojure.style/) plus local conventions. A shorter day-to-day quick reference covering layout/indentation/`ns` form lives in `~/.cursor/rules/clojure-daily-tips.mdc` — if both apply and disagree, `clojure-review.mdc` wins.
+Full rules live in `~/.cursor/rules/standards/clojure-review.mdc` (auto-applied to Clojure files via glob) and are based on the community Clojure style guide (https://guide.clojure.style/) plus local conventions. A shorter day-to-day quick reference covering layout/indentation/`ns` form lives in `~/.cursor/rules/standards/clojure-daily-tips.mdc` — if both apply and disagree, `clojure-review.mdc` wins. Cross-stack standards live under `~/.cursor/rules/standards/`.
 
 High-priority categories to enforce during review (use the rule file for full detail + examples):
 

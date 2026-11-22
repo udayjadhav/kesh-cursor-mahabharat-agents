@@ -1,0 +1,26 @@
+---
+description: Non-relational data stores — document, key-value, search. Do not assume relational guarantees.
+globs: "**/*mongo*,**/*redis*,**/*elastic*,**/*opensearch*,**/nosql/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# NoSQL Database Standards
+
+Enforcement: **B**. See engine files for Redis, MongoDB, Elasticsearch.
+
+## Rules
+
+- Model for query patterns first; document what is denormalized and how updates stay consistent.
+- Do not assume multi-document ACID unless the product guarantees it for your API usage.
+- Explicit TTLs and retention for caches and ephemeral keys.
+- Search indexes are not systems of record for authoritative business state.
+- Migrations may be application-driven dual-writes — plan verification and backfill.
+
+## Anti-patterns
+
+- Using a cache as the only copy of critical data
+- Unbounded document growth
+- Ignoring eventual consistency in UX
+- Treating search relevance indexes as transactional stores

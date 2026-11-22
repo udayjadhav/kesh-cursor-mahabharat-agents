@@ -1,8 +1,8 @@
-# Kesh Cursor Kit
+# Kesh Cursor Kit 2.0
 
-Portable multi-agent orchestration for [Cursor](https://cursor.com): agents, rules, skills, and documentation you can copy to any machine.
+Portable **AI engineering operating system** for [Cursor](https://cursor.com): adaptive multi-agent orchestration, modular engineering standards, optional safety hooks, and evidence-based delivery.
 
-Think of it as a **hospital workflow** — triage (intent), specialists in parallel (code, history, design), a cache check so you do not re-diagnose the same case, build, independent review, business gates, then ship / no-ship.
+Kesh classifies work, delegates only the specialists that add value, implements and reviews production changes, and reports an honest delivery status.
 
 **Repo:** [github.com/udayjadhav/kesh-cursor-mahabharat-agents](https://github.com/udayjadhav/kesh-cursor-mahabharat-agents)
 
@@ -13,9 +13,12 @@ git clone https://github.com/udayjadhav/kesh-cursor-mahabharat-agents.git
 cd kesh-cursor-mahabharat-agents
 chmod +x install.sh
 ./install.sh
+# optional:
+# INSTALL_KNOWLEDGE=1 INSTALL_HOOKS=1 ./install.sh
+./scripts/validate-kit.sh   # kit integrity (from this repo)
 ```
 
-Restart Cursor, then in chat:
+Restart Cursor, then:
 
 ```
 @kesh implement feature X
@@ -27,126 +30,106 @@ Restart Cursor, then in chat:
 
 | Path | Purpose |
 |------|---------|
-| `agents/` | 21 Cursor subagent definitions (17 roster + 4 Kesh support modules) |
-| `rules/` | 13 always-on or contextual `.mdc` rules (canonical spec, router, cache, voice) |
+| `agents/` | 21 subagents (17 roster + 4 support modules) |
+| `rules/` | Core always-on contracts + `rules/standards/**` (glob-selective) |
+| `knowledge/` | Concept notes + `manifest.json` (optional install) |
 | `skills/xray/` | Deep repository analysis skill |
-| `docs/` | Human-readable workflow, agent roster, install, rules reference |
-| `optional/` | Notes for org-specific customisation (team rosters, Clojure) |
-| `install.sh` | One-command install into `~/.cursor` |
+| `skills/knowledge-discovery/` | Tech gap research → propose/update standards |
+| `hooks/` | Opt-in destructive-shell safety hooks |
+| `scripts/` | `validate-kit.sh` integrity checker |
+| `docs/` | Workflow, agents, standards, install |
+| `optional/` | Teams template, cache schema notes |
+| `install.sh` | Install into `~/.cursor` |
 
 ## Documentation map
 
 | Doc | Contents |
 |-----|----------|
-| [docs/WORKFLOW.md](docs/WORKFLOW.md) | Full 15-step flow, cache gate, parallel stages, loop-back, emergency override |
-| [docs/AGENTS.md](docs/AGENTS.md) | Every agent: role, tier, model, when to use |
-| [docs/RULES.md](docs/RULES.md) | Every rule file and what it enforces |
-| [docs/SKILLS.md](docs/SKILLS.md) | Skills (XRay) and how they attach |
-| [docs/INSTALL.md](docs/INSTALL.md) | Install, upgrade, per-repo overrides, troubleshooting |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System layers, invariants, global vs local sync |
-| [CHANGELOG.md](CHANGELOG.md) | What changed in this kit |
+| [docs/WORKFLOW.md](docs/WORKFLOW.md) | Adaptive task classes, gates, delivery statuses |
+| [docs/AGENTS.md](docs/AGENTS.md) | Roster, tiers, models |
+| [docs/STANDARDS.md](docs/STANDARDS.md) | Java/Python/React/DB/… modules |
+| [docs/KNOWLEDGE.md](docs/KNOWLEDGE.md) | Concept notes + manifest |
+| [docs/KNOWLEDGE-DISCOVERY.md](docs/KNOWLEDGE-DISCOVERY.md) | Discovery, reconciliation, MDC generation |
+| [rules/kesh-human-communication.mdc](rules/kesh-human-communication.mdc) | Mandatory human-quality / paste-ready communication |
+| [rules/kesh-code-quality.mdc](rules/kesh-code-quality.mdc) | Mandatory code quality, comments, contracts, docs |
+| [rules/kesh-niti.mdc](rules/kesh-niti.mdc) | NITI learning loop + telemetry contract |
+| [docs/kesh-2.0/NITI-AUDIT.md](docs/kesh-2.0/NITI-AUDIT.md) | NITI audit (documented vs executable) |
+| [docs/kesh-2.0/TOKEN-OPTIMIZATION.md](docs/kesh-2.0/TOKEN-OPTIMIZATION.md) | Risk modes, context packages, cache, guardrails |
+| [docs/kesh-2.0/STAFF-ENGINEER-EDITION.md](docs/kesh-2.0/STAFF-ENGINEER-EDITION.md) | Skills-first specialists + optional healthcare pack |
+| [docs/SKILLS.md](docs/SKILLS.md) | Progressive skill catalog |
+| [docs/RULES.md](docs/RULES.md) | Core rules reference |
+| [docs/INSTALL.md](docs/INSTALL.md) | Install / upgrade / flags |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers + enforcement levels A–E |
+| [docs/kesh-2.0/](docs/kesh-2.0/) | 2.0 baseline, plan, phase reports |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes |
 
-**Canonical contract:** `rules/kesh-agent-spec.mdc` — when any file disagrees, the spec wins.
+**Canonical contract:** `rules/kesh-agent-spec.mdc` **v2.0.0** — when any file disagrees, the spec wins.
 
-## 15-step flow (compressed)
+## Adaptive flow (2.0)
 
 ```mermaid
 flowchart TB
-  U[User request] --> EM{Emergency?}
-  EM -->|Yes| ER[Sanjaya + Parth parallel, Bhishma once]
-  EM -->|No| CG[Step 0.5 Cache Gate]
-  CG -->|FULL_HIT| SYN[Reuse cached synthesis]
-  CG -->|PARTIAL / MISS| P1
-  subgraph P1 [Phase 1 — Understand]
-    V[Vidura] --- S[Sanjaya]
-    S --- Y[Vyasa]
-    V --> M1[Merge]
-    S --> M1
-    Y --> M1
-    M1 --> VW[Vishwakarma]
-    M1 --> SA[Sarthi]
-  end
-  P1 --> P2
-  subgraph P2 [Phase 2 — Build]
-    PA[Parth] --> SW[Swachalit]
-  end
-  P2 --> P3
-  subgraph P3 [Phase 3 — Critique parallel]
-    B[Bhishma]
-    L[Lakshman]
-    D[Draupadi]
-  end
-  P3 -->|Bhishma or Lakshman FAIL| P2
-  P3 --> P4
-  subgraph P4 [Phase 4 — Gates]
-    K[Krishna]
-    ML[Money Lens]
-    K --> DE[Decision Engine]
-    ML --> DE
-  end
-  P4 -->|KILL or REJECT or NO-GO| STOP[STOP]
-  P4 --> P5
-  subgraph P5 [Phase 5 — Final]
-    KR[Kripacharya] --> KE[Kesh SHIP / NO-SHIP]
-  end
-  SYN --> P5
+  U[User request] --> EM{Incident?}
+  EM -->|Yes| INC[Evidence + mitigation + approval]
+  EM -->|No| CG[Cache Gate]
+  CG --> CL[Classify task_class]
+  CL --> SEL[Select minimum sufficient agents]
+  SEL --> STD[Load matching standards]
+  STD --> EX[Execute]
+  EX --> REP[Delivery report + status]
 ```
 
-Wall-clock: ~5 parallel stages instead of 15 serial steps (~3× faster while using all applicable agents).
+Twelve task classes include `EXPLANATION`, `BUG_FIX`, `FEATURE`, `DATABASE_CHANGE`, `SECURITY_CHANGE`, `PRODUCTION_INCIDENT`, `CODE_REVIEW`, and more — see [docs/WORKFLOW.md](docs/WORKFLOW.md).
+
+**Delivery status:** `COMPLETE` | `PARTIAL` | `BLOCKED` | `REQUIRES_HUMAN_APPROVAL`  
+`COMPLETE` requires verification evidence (no fabricated test results).
+
+**Money Lens** is advisory and must not hard-stop mandatory bug/security/incident work.
 
 ## Agent roster (summary)
 
 | Agent | Tier | Model | Role |
 |-------|------|-------|------|
-| Kesh | A | claude-4-7-opus | Supervisor — SHIP / NO-SHIP |
+| Kesh | A | claude-4-7-opus | Supervisor — delivery status |
 | Vidura | A | claude-4-7-opus | Requirements |
 | Sanjaya | A | claude-4-6-sonnet | Code / XRay |
-| Vyasa | A | claude-4-6-sonnet | Org knowledge (5 sources) |
-| Vishwakarma | A | claude-4-7-opus | Architecture |
+| Vyasa | A | claude-4-6-sonnet | Org knowledge |
+| Vishwakarma | A | claude-4-7-opus | Architecture + ADR |
 | Sarthi | A | claude-4-6-sonnet | Planning |
 | Krishna | A | claude-4-7-opus | Strategic gate (KILL stops) |
-| Money Lens | A | claude-4-6-sonnet | Business gate (REJECT stops) |
+| Money Lens | A | claude-4-6-sonnet | Business trade-offs (advisory) |
 | Decision Engine | A | claude-4-7-opus | GO / CONDITIONAL / NO-GO |
 | Kripacharya | A | claude-4-6-sonnet | Final validation |
 | Parth | B | composer-2 | Implementation |
-| Swachalit | B | composer-2 | Tests |
-| Sutradhar | B | composer-2 | Execution orchestration |
-| NITI | B | composer-2 | System optimization |
-| Bhishma | C | claude-4-6-sonnet | Code review (FAIL → loop) |
-| Lakshman | C | claude-4-6-sonnet | QA (FAIL → loop) |
+| Swachalit | B | composer-2 | Tests + execution evidence |
+| Sutradhar | B | composer-2 | Build–critique loop |
+| NITI | A | claude-4-6-sonnet | Optimization & evaluation (out of band) |
+| Bhishma | C | claude-4-6-sonnet | Code review |
+| Lakshman | C | claude-4-6-sonnet | QA |
 | Draupadi | C | claude-4-6-sonnet | Customer impact |
 
-Support modules (no pinned model — inherit the parent chat): `kesh-flows`, `kesh-context`, `kesh-output`, `kesh-rules`.
+**Invariant:** Parth and Bhishma must never share the same model.
 
-**Invariant:** Parth (`composer-2`) and Bhishma (`claude-4-6-sonnet`) must never share the same model.
+## Enforcement honesty
 
-See [docs/AGENTS.md](docs/AGENTS.md) for full detail.
+| Level | Meaning |
+|-------|---------|
+| A | Documented only |
+| B | Prompt-guided |
+| C | Tool-supported (Cursor globs, subagents, model pins) |
+| D | Executably enforced (installer, optional hooks, validator) |
+| E | Tested (`tests/validate-kit.test.sh`) |
 
-## Manual install (no script)
-
-```bash
-cp -a agents/*   ~/.cursor/agents/
-cp -a rules/*    ~/.cursor/rules/
-cp -a skills/xray/* ~/.cursor/skills/xray/
-```
-
-## Per-repo overrides
-
-```
-my-repo/
-└── .cursor/
-    ├── agents/bhishma.md   # overrides global for this repo only
-    └── rules/              # optional project rules
-```
-
-Resolution: **local overrides global** for that repository. See `rules/global-local-sync.mdc`.
+Most orchestration behavior is **B/C**. Kit structure is validated at **D/E**. Optional hooks raise selected shell risks to **D** when installed.
 
 ## Customization checklist
 
-- [ ] Edit or replace `rules/teams.mdc` with your Jira team rosters (or delete it)
-- [ ] Edit `rules/clojure-*.mdc` if you do not use Clojure
-- [ ] Configure Vyasa MCP / Atlassian if you use org knowledge harvest
-- [ ] Verify model slugs match your Cursor plan ([models docs](https://cursor.com/docs/models-and-pricing))
+- [ ] `INSTALL_KNOWLEDGE=1` if you want concept notes under `~/.cursor/knowledge/kesh/`
+- [ ] `INSTALL_HOOKS=1` and enable `hooks.json` if you want destructive-shell prompts
+- [ ] `SKIP_CLOJURE=1` if you do not use Clojure
+- [ ] `INSTALL_TEAMS=1` or copy `optional/teams.mdc` for Jira rosters
+- [ ] Skim [docs/STANDARDS.md](docs/STANDARDS.md) for your stacks
+- [ ] Verify model slugs against your Cursor plan
 
 ## License
 

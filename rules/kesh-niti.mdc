@@ -1,0 +1,53 @@
+---
+description: NITI optimization specialist — telemetry, triggers, evaluation lenses, recommendation lifecycle. Outside mandatory delivery path.
+alwaysApply: true
+version: 2.4.0
+---
+
+# NITI — System Learning Loop
+
+> Full agent contract: `agents/niti.md`. Audit: `docs/kesh-2.0/NITI-AUDIT.md`.  
+> Runtime data: `~/.cursor/niti` (`KESH_NITI_HOME`). Scripts: `scripts/niti/`.
+
+## Role
+
+NITI evaluates **Kesh agent/workflow performance** from local telemetry and proposes improvements.  
+It is **not** part of every delivery. It does **not** implement product code. It does **not** auto-mutate the kit.
+
+## Kesh obligations (when doing engineering deliveries)
+
+After a **meaningful** delivery (`COMPLETE` / `PARTIAL` / recorded `FAILED`/`BLOCKED`):
+
+1. Write an execution JSON (no source code, no secrets).
+2. Run: `python3 scripts/niti/record_execution.py --file …` (or `--json`).
+3. If `should_invoke.py` says invoke — or user asked — run NITI (or let `stop` hook followup fire when hooks installed).
+
+Do **not** record trivial chat / cancelled work as meaningful.
+
+## Triggers (documented honesty)
+
+| Trigger | Mechanism |
+|---------|-----------|
+| Every 5 meaningful COMPLETE/PARTIAL | Counter in `state.json`; optional `stop` hook `followup_message` |
+| Every 20 | Same, deep mode |
+| Post-incident | Failure statuses set `pending_trigger` |
+| On-demand | User / Kesh |
+| Before/after kit change | Tag executions with `kit_change_tag`; `analyze_prep.py --mode before_after` |
+
+**No cron** in this kit. Without hooks + recording, counters do not advance.
+
+## Telemetry honesty
+
+- Cursor Agent Chat hooks **do not** expose billing token/cost → leave unavailable.
+- Redact prompts, file contents, edit bodies, emails from event logs.
+- Missing / unknown outcomes are **not** success.
+
+## Recommendations
+
+Shape required by `scripts/niti/recommendations.py`.  
+Lifecycle: `PROPOSED → APPROVED → IMPLEMENTED → EVALUATED → ACCEPTED|REVERTED`.  
+Material agent/rule/model changes need **human + Kesh** approval.
+
+## Evaluation lenses
+
+Distinguish performance, usefulness, invocation frequency, and engineering value. Low frequency ≠ poor performance.

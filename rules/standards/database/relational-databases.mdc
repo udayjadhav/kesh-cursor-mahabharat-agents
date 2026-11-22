@@ -1,0 +1,38 @@
+---
+description: Relational / OLTP database standards — keys, constraints, isolation, indexing basics.
+globs: "**/*.{sql},**/migrations/**,**/flyway/**,**/liquibase/**"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Relational Database Standards
+
+Enforcement: **B**. Pair with the specific engine file under `engines/`.
+
+## Schema
+
+- Primary keys: stable, unique; prefer opaque IDs when business keys change.
+- Foreign keys enforce integrity when supported and affordable at write path.
+- Unique constraints for natural uniqueness; partial uniques when the engine allows.
+- Check constraints for simple domain invariants at the DB when appropriate.
+
+## Transactions & isolation
+
+- Know the engine’s default isolation level.
+- Keep transactions short; no remote calls inside transactions.
+- Document required isolation (e.g. avoid dirty reads for money paths).
+- Be explicit about lock contention risks on hot rows.
+
+## Indexing
+
+- Index for measured query paths; every index costs writes and storage.
+- Avoid redundant indexes; consider covering indexes only when proven.
+- Review `EXPLAIN` / equivalent before “optimizing.”
+
+## Anti-patterns
+
+- SELECT * in hot paths
+- Unbounded result sets without pagination
+- ORM N+1 ignored under load
+- Wide transactions updating many unrelated rows

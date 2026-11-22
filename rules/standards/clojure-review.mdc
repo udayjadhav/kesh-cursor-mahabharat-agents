@@ -9,7 +9,7 @@ version: 2.1.0
 
 Enforced during code review (Bhishma) and code authoring (Parth). Based on the community Clojure style guide (https://guide.clojure.style/) plus local conventions.
 
-> **Companion reference:** `~/.cursor/rules/clojure-daily-tips.mdc` is a lightweight quick-reference covering the most common layout / `ns` / indentation rules for daily programming. Use it for fast lookups. This file (`clojure-review.mdc`) is the **authoritative** reference — if the two ever disagree, this one wins.
+> **Companion reference:** `~/.cursor/rules/standards/clojure-daily-tips.mdc` is a lightweight quick-reference covering the most common layout / `ns` / indentation rules for daily programming. Use it for fast lookups. This file (`clojure-review.mdc`) is the **authoritative** reference — if the two ever disagree, this one wins.
 
 Severity mapping:
 - 🔴 **CRITICAL** — bug risk, correctness issue, or unsafe side effect (block merge)

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "meaningful_completed_count": 0,
+  "since_lightweight": 0,
+  "since_deep": 0,
+  "last_lightweight_at_count": null,
+  "last_deep_at_count": null,
+  "pending_trigger": null,
+  "analyzed_execution_ids": [],
+  "analyzed_execution_ids_cap": 500,
+  "updated_at": null
+}

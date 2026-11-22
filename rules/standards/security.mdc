@@ -1,0 +1,52 @@
+---
+description: Production security standards — OWASP-oriented controls, secrets, authn/z, dependency risk. Applies across stacks; language rules add specifics.
+globs: "**/*.{java,kt,py,ts,tsx,js,jsx,go,clj,cljs},**/security/**,**/*auth*,**/*oauth*,**/Authorization*"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Security Engineering Standards
+
+Enforcement: **B** (prompt). Scanners/hooks are **C/D** when configured — LLM review does **not** replace them.
+
+## Non-negotiables
+
+- Never commit secrets, tokens, private keys, or production credentials.
+- Never log passwords, session tokens, PANs, raw PII beyond policy, or auth headers.
+- Validate and encode untrusted input at trust boundaries.
+- Prefer deny-by-default authorization; check every sensitive operation.
+- Least privilege for service accounts, DB roles, cloud IAM.
+- No automatic production deploy or destructive data ops without human approval.
+
+## OWASP-oriented checklist (adapt to stack)
+
+| Risk | Engineering expectation |
+|------|-------------------------|
+| Injection | Parameterized queries / safe APIs; never string-build SQL/LDAP/OS commands from input |
+| XSS | Context-aware encoding; avoid `dangerouslySetInnerHTML` / raw HTML unless sanitized |
+| CSRF | SameSite cookies + anti-CSRF for cookie-based session mutations |
+| SSRF | Allowlist outbound destinations; block link-local/metadata IPs |
+| Broken auth | Proven libraries; secure session/JWT handling; rotate/revoke |
+| Access control | Object-level checks; no IDOR via sequential IDs without authz |
+| Misconfig | Harden defaults; disable debug in prod; secure headers |
+| Vulnerable deps | Run available scanners (OSV, npm audit, pip-audit, etc.) and record results |
+| Integrity | Verify artifacts; pin versions intentionally |
+| Logging/monitoring | Security-relevant events without sensitive payloads |
+
+## Implementation rules
+
+- Authn ≠ authz — authenticate identity, then authorize action on resource.
+- Encrypt in transit (TLS); encrypt sensitive data at rest per policy.
+- Secrets via vault/secret manager or env injected at runtime — never source control.
+- Dependency changes: review changelogs for supply-chain risk.
+- Security-sensitive diffs: Bhishma must evaluate; Swachalit adds regression tests where feasible.
+
+## Evidence
+
+When claiming “secure”:
+
+1. List checks performed (manual + tools).
+2. Record tool names, commands, exit codes.
+3. Mark residual risk explicitly.
+4. Never invent scan results.

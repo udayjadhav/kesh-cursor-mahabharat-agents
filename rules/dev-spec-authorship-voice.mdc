@@ -1,8 +1,8 @@
 ---
 description: Dev specs / RFCs / design docs / runbooks are written in the engineer-author's voice — no assistant self-attribution, no meta-narrative about the writing process.
-globs: **/*.md, **/*.mdc, **/scratch/**, **/specs/**, **/docs/**
+globs: "**/scratch/**,**/specs/**,**/docs/**/*.md,**/*ADR*,**/*rfc*,**/*RFC*"
 version: 1.0.0
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Dev Spec Authorship Voice

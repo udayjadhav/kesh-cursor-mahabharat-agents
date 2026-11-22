@@ -1,0 +1,55 @@
+---
+description: Microservice boundaries, contracts, communication, and operability. Prefer modular monolith unless independent deploy/scale/failure is justified.
+globs: "**/services/**,**/service/**,**/apps/**,**/deploy/**,**/*docker*,**/helm/**,**/k8s/**,**/*openapi*,**/*proto*"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Microservices Standards
+
+Enforcement: **B**. Cross-check `software-architecture.mdc` and `distributed-systems.mdc`.
+
+## When microservices are justified
+
+- Independent release cadence or scaling profile with measured need
+- Clear data ownership (no shared writable DB as an API)
+- Team ownership aligned to service boundaries
+- Failure isolation worth the operational cost
+
+Otherwise prefer a **modular monolith** with clear packages/modules.
+
+## Boundaries
+
+- Define the business capability and **data owner**.
+- Sync calls for query/command where latency and coupling are acceptable.
+- Async events for fan-out, decoupling, and eventual consistency — with explicit semantics.
+- Version public APIs and events; prefer additive evolution.
+
+## Reliability patterns (select for the failure mode)
+
+| Pattern | Problem it addresses |
+|---------|----------------------|
+| Timeout | Hung dependencies |
+| Retry + backoff + jitter | Transient faults (only if idempotent) |
+| Circuit breaker | Cascading failure |
+| Bulkhead | Resource isolation |
+| Idempotency keys | Duplicate delivery |
+| Outbox + reliable publisher | DB commit vs message publish race |
+| Saga / compensation | Multi-service business transaction |
+
+Do not apply the whole catalog by default.
+
+## Contracts
+
+- Document request/response and error models.
+- Consumer-driven or schema contract tests when multiple teams integrate.
+- Trace IDs across boundaries; structured logs with correlation.
+
+## Anti-patterns
+
+- Distributed monolith
+- Chatty sync graphs without budgets
+- Shared database between services
+- Dual writes without outbox/transaction strategy
+- Ignoring poison messages and DLQ policy

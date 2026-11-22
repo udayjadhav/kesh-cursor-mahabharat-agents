@@ -1,0 +1,36 @@
+---
+description: Safe schema migrations — expand/contract, locking, backfills, rollback limits. Required reading for DATABASE_CHANGE tasks.
+globs: "**/migrations/**,**/db/migrate/**,**/flyway/**,**/liquibase/**,**/alembic/**,**/goose/**,**/*.sql"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Database Migration Standards
+
+Enforcement: **B**. Destructive migrations need **human approval**.
+
+## Preferred sequence
+
+1. **Expand** — additive, compatible schema (new columns/tables/indexes online if possible)
+2. **Migrate** — backfill; dual-read/write if needed
+3. **Contract** — remove old columns/paths only after all producers/consumers upgraded
+
+## Rules
+
+- Migrations must be reviewed with application version compatibility in mind.
+- Estimate lock time; prefer online/concurrent index builds when the engine supports them.
+- Backfills: batched, observable, resumable; avoid long transactions.
+- Separate hard deletes / drops from expand steps.
+- Test migrations against realistic data volumes when possible (Testcontainers / staging).
+- Document rollback: schema rollback ≠ data undo.
+- Never run unapproved destructive SQL against production.
+
+## Report requirements
+
+- Migration order
+- Compatibility window
+- Lock/availability risk
+- Backfill plan
+- Rollback limitations
+- Verification queries/tests

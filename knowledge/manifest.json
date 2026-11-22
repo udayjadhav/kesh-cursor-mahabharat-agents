@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "description": "Lightweight index of technologies known to Kesh standards/knowledge. Not a knowledge-management platform.",
+  "updated_at": "2026-11-22",
+  "entries": [
+    {
+      "technology": "Java",
+      "kind": "language",
+      "version_range": "11+",
+      "mdc_paths": ["rules/standards/java-quarkus.mdc"],
+      "knowledge_paths": [],
+      "internal_sources": [],
+      "external_sources": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": ["Quarkus-focused; plain Jakarta/Spring coverage not separate"],
+      "task_categories": ["FEATURE", "BUG_FIX", "PATCH", "CODE_REVIEW"]
+    },
+    {
+      "technology": "Quarkus",
+      "kind": "framework",
+      "version_range": "3.x (unspecified)",
+      "mdc_paths": ["rules/standards/java-quarkus.mdc"],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": ["Prefer repo BOM/version evidence over this range"],
+      "task_categories": ["FEATURE", "BUG_FIX", "PATCH"]
+    },
+    {
+      "technology": "Python",
+      "kind": "language",
+      "version_range": "3.x",
+      "mdc_paths": ["rules/standards/python.mdc"],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["FEATURE", "BUG_FIX", "PATCH", "CODE_REVIEW"]
+    },
+    {
+      "technology": "React",
+      "kind": "framework",
+      "version_range": "18+",
+      "mdc_paths": ["rules/standards/react-typescript.mdc"],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": ["Do not assume Next.js"],
+      "task_categories": ["FEATURE", "PATCH", "CODE_REVIEW"]
+    },
+    {
+      "technology": "TypeScript",
+      "kind": "language",
+      "version_range": "5.x (unspecified)",
+      "mdc_paths": ["rules/standards/react-typescript.mdc"],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["FEATURE", "PATCH", "CODE_REVIEW"]
+    },
+    {
+      "technology": "PostgreSQL",
+      "kind": "database",
+      "version_range": "unknown",
+      "mdc_paths": [
+        "rules/standards/database/database-design.mdc",
+        "rules/standards/database/relational-databases.mdc",
+        "rules/standards/database/engines/postgresql.mdc",
+        "rules/standards/database/database-migrations.mdc",
+        "rules/standards/database/database-performance.mdc"
+      ],
+      "knowledge_paths": ["knowledge/indexing.md", "knowledge/transactions.md"],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": ["Workload-specific gaps may remain — assess before claiming SUFFICIENT"],
+      "task_categories": ["DATABASE_CHANGE", "DEBUGGING", "FEATURE"]
+    },
+    {
+      "technology": "CockroachDB",
+      "kind": "database",
+      "mdc_paths": [
+        "rules/standards/database/distributed-databases.mdc",
+        "rules/standards/database/engines/cockroachdb.mdc"
+      ],
+      "knowledge_paths": ["knowledge/partitioning.md", "knowledge/consistency.md"],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["DATABASE_CHANGE", "ARCHITECTURE"]
+    },
+    {
+      "technology": "Google Cloud Spanner",
+      "kind": "database",
+      "mdc_paths": [
+        "rules/standards/database/distributed-databases.mdc",
+        "rules/standards/database/engines/google-spanner.mdc"
+      ],
+      "knowledge_paths": ["knowledge/partitioning.md"],
+      "last_verified": "2026-11-22",
+      "confidence": "low",
+      "limitations": ["Confirm GCP use from repo evidence"],
+      "task_categories": ["DATABASE_CHANGE", "ARCHITECTURE"]
+    },
+    {
+      "technology": "BigQuery",
+      "kind": "database",
+      "mdc_paths": [
+        "rules/standards/database/analytical-databases.mdc",
+        "rules/standards/database/engines/bigquery.mdc"
+      ],
+      "knowledge_paths": ["knowledge/stream-vs-batch.md"],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["FEATURE", "DATABASE_CHANGE"]
+    },
+    {
+      "technology": "MySQL",
+      "kind": "database",
+      "mdc_paths": [
+        "rules/standards/database/relational-databases.mdc",
+        "rules/standards/database/engines/mysql.mdc"
+      ],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["DATABASE_CHANGE"]
+    },
+    {
+      "technology": "MongoDB",
+      "kind": "database",
+      "mdc_paths": [
+        "rules/standards/database/nosql-databases.mdc",
+        "rules/standards/database/engines/mongodb.mdc"
+      ],
+      "knowledge_paths": ["knowledge/data-modelling.md"],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["DATABASE_CHANGE", "FEATURE"]
+    },
+    {
+      "technology": "Redis",
+      "kind": "database",
+      "mdc_paths": [
+        "rules/standards/database/nosql-databases.mdc",
+        "rules/standards/database/engines/redis.mdc"
+      ],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["FEATURE", "DEBUGGING"]
+    },
+    {
+      "technology": "Elasticsearch",
+      "kind": "database",
+      "mdc_paths": [
+        "rules/standards/database/nosql-databases.mdc",
+        "rules/standards/database/engines/elasticsearch.mdc"
+      ],
+      "knowledge_paths": ["knowledge/indexing.md"],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["FEATURE", "DEBUGGING"]
+    },
+    {
+      "technology": "Microservices",
+      "kind": "architecture",
+      "mdc_paths": [
+        "rules/standards/microservices.mdc",
+        "rules/standards/distributed-systems.mdc",
+        "rules/standards/software-architecture.mdc"
+      ],
+      "knowledge_paths": [
+        "knowledge/event-semantics.md",
+        "knowledge/failure-models.md",
+        "knowledge/consistency.md"
+      ],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["ARCHITECTURE", "FEATURE"]
+    },
+    {
+      "technology": "Security engineering",
+      "kind": "practice",
+      "mdc_paths": ["rules/standards/security.mdc"],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": ["Does not replace scanners"],
+      "task_categories": ["SECURITY_CHANGE", "CODE_REVIEW", "FEATURE"]
+    },
+    {
+      "technology": "Testing",
+      "kind": "practice",
+      "mdc_paths": ["rules/standards/testing.mdc"],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "medium",
+      "limitations": [],
+      "task_categories": ["FEATURE", "BUG_FIX", "PATCH"]
+    },
+    {
+      "technology": "Clojure",
+      "kind": "language",
+      "mdc_paths": [
+        "rules/standards/clojure-review.mdc",
+        "rules/standards/clojure-daily-tips.mdc"
+      ],
+      "knowledge_paths": [],
+      "last_verified": "2026-11-22",
+      "confidence": "high",
+      "limitations": ["Optional pack; may be skipped at install"],
+      "task_categories": ["FEATURE", "CODE_REVIEW", "PATCH"]
+    }
+  ]
+}

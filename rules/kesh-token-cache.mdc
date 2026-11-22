@@ -5,11 +5,13 @@ alwaysApply: true
 
 # Kesh Token Cache (Cache Gate)
 
-> **Canonical contract:** `~/.cursor/rules/kesh-agent-spec.mdc`. This rule adds **Step 0.5 — Cache Gate**. It does **not** override Agent Maximization with cost excuses — it only skips agents whose **inputs already exist as valid cached output** (applicability skip).
+> **Canonical contract:** `rules/kesh-agent-spec.mdc`. Step 0.5 — Cache Gate. Skips agents only when **valid cached output already exists** (applicability) — never to “save money” by skipping required review/tests.
+>
+> **Operational tools:** `scripts/cache/{fingerprint,get,put,invalidate}.py` (`KESH_CACHE_HOME` overrides `~/.cursor/knowledge/cache`).
 
 ## Why this exists
 
-The full 15-step flow is correct but expensive. Identical or near-identical requests (same Jira key, same architecture Q, same review topic) often re-invoke Vidura / Sanjaya / Vyasa / Vishwakarma and burn tokens for answers already on disk.
+Adaptive workflows still waste tokens when identical topics re-run Sanjaya / Vidura / architecture digests. Cache reusable **summaries** with fingerprints + TTL.
 
 ## Step 0.5 — Cache Gate (mandatory, before Phase 1)
 
@@ -75,10 +77,12 @@ fingerprint = first16(sha256(
 
 ### Write path (after successful run)
 
-1. Build entry per `~/.cursor/knowledge/cache/README.md` schema
-2. Write `entries/<fingerprint>.json` with **summaries only** (≤ ~2k tokens per agent; never full diffs / secrets)
-3. Upsert into `index.json`: `{ fingerprint, topic, input_type, entities, created_at, ttl_hours, path }`
-4. Cap store: keep newest **50** entries; delete oldest files when over cap
+1. `python3 scripts/cache/fingerprint.py --topic '…' --input-type FEATURE --entities '…' --code-revision $(git rev-parse --short HEAD 2>/dev/null || echo n/a)`
+2. `python3 scripts/cache/put.py --json '…'` — summaries only (≤ ~2k tokens/agent; never secrets/full diffs)
+3. Schema: `optional/knowledge-cache/README.md`
+4. Cap: newest **50** entries (enforced by `put.py`)
+
+**Never** reuse STALE entries as current test/security/source evidence (`get.py` returns `STALE`).
 
 ### What never skips on cache alone
 

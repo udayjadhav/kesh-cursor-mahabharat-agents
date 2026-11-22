@@ -1,0 +1,25 @@
+---
+description: Google Cloud Spanner — interleaved tables, primary keys, commit timestamps, schema updates.
+globs: "**/*spanner*"
+alwaysApply: false
+version: 2.0.0
+kesh_module: standards
+---
+
+# Google Cloud Spanner
+
+Enforcement: **B**. Confirm actual use via project config — do not assume GCP.
+
+## Distinctives
+
+- Primary key design dominates performance; avoid hotspots (monotonic keys at scale).
+- Interleaved tables for locality of parent/child access patterns.
+- Strong consistency by default within transactions; know read options.
+- Schema changes are coordinated; plan apply time and compatibility.
+- Secondary indexes cost writes; use for read paths that matter.
+- Commit timestamps and generated keys have specific patterns — follow current Spanner docs for the API you use (SQL vs client libraries).
+
+## Do not
+
+- Treat Spanner like a drop-in Postgres
+- Design keys that concentrate writes on one split
