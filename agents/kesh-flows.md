@@ -9,18 +9,23 @@ description: Kesh support module for adaptive task classification, cache gate, w
 
 ## Adaptive flow
 
+**Detailed lifecycle (request → agents → redo loops → delivery → NITI):**  
+[`docs/WORKFLOW.md`](../docs/WORKFLOW.md) — use that as the human-readable map.
+
 ```
 INPUT → Emergency/Incident? → Cache Gate → Classify task_class
      → Select execution_mode (escalate-only)
-     → Select agents (mode + template)
-     → Context packages + progressive standards
+     → Select agents (mode + template + specialists by signal)
+     → Context packages + progressive standards/skills
      → Knowledge gate (SUFFICIENT → load; else discover → propose MDC)
      → Deterministic verification first
-     → Execute → Consolidate (mode + CACHE + verification)
+     → Execute → Sutradhar build–critique loop (max 5) when code changes
+     → Gates → Kesh delivery status → NITI record (out of band)
 ```
 
 Knowledge gate: `kesh-knowledge-discovery.mdc`. Skip research when coverage is SUFFICIENT.  
-Modes: `kesh-execution-modes.mdc`. Guardrails: `kesh-quality-guardrails.mdc`.
+Modes: `kesh-execution-modes.mdc`. Guardrails: `kesh-quality-guardrails.mdc`.  
+**Parth = implementation. Swachalit = tests. Sutradhar = loop orchestration.**
 
 ## Task classes
 
