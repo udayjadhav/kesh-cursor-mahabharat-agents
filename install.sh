@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Kesh Cursor Kit 2.0 — installs agents, rules (incl. standards/), skills,
-# and optionally knowledge modules / safety hooks into ~/.cursor
+# Kesh Cursor Kit 2.6 — installs agents, rules (incl. standards/), skills,
+# core docs, and optionally knowledge modules / safety hooks into ~/.cursor
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,13 +12,16 @@ INSTALL_NITI="${INSTALL_NITI:-0}"
 INSTALL_HEALTHCARE="${INSTALL_HEALTHCARE:-0}"
 SKIP_CLOJURE="${SKIP_CLOJURE:-0}"
 INSTALL_TEAMS="${INSTALL_TEAMS:-0}"
+# Archive employer-only alwaysApply leftovers that are NOT part of this kit
+# (they otherwise keep forcing old / company-specific behavior in every tab).
+ARCHIVE_LOCAL_ONLY="${ARCHIVE_LOCAL_ONLY:-1}"
 
 usage() {
   cat <<'EOF'
-Kesh Cursor Kit installer (2.0)
+Kesh Cursor Kit installer (2.6)
 
 Usage:
-  ./install.sh                         Install agents, rules (incl. standards), skills
+  ./install.sh                         Install agents, rules, skills, core docs
   CURSOR_DIR=/path ./install.sh        Custom Cursor config root
   DRY_RUN=1 ./install.sh               Show actions without copying
   INSTALL_KNOWLEDGE=1 ./install.sh     Also install knowledge/ → ~/.cursor/knowledge/kesh/
@@ -27,11 +30,14 @@ Usage:
   INSTALL_HEALTHCARE=1 ./install.sh     Optional healthcare domain pack (not in public core)
   SKIP_CLOJURE=1 ./install.sh          Omit Clojure standards after copy
   INSTALL_TEAMS=1 ./install.sh         Copy optional/teams.mdc into rules/
+  ARCHIVE_LOCAL_ONLY=0 ./install.sh    Keep employer-only rules already in ~/.cursor/rules
 
 What gets installed by default:
   agents/*.md              →  $CURSOR_DIR/agents/
   rules/** (nested OK)     →  $CURSOR_DIR/rules/
   skills/*/SKILL.md        →  $CURSOR_DIR/skills/<name>/
+  docs/*.md (core)         →  $CURSOR_DIR/knowledge/kesh/docs/
+  scripts/{modes,standards,context,cache,skills,repo,adr,quality}
 
 Existing destination dirs are backed up with a timestamp suffix before overwrite.
 EOF
@@ -57,7 +63,7 @@ RULE_N="$(count_files "$SCRIPT_DIR/rules" '*.mdc')"
 STD_N="$(count_files "$SCRIPT_DIR/rules/standards" '*.mdc')"
 
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║           KESH CURSOR KIT 2.0 — INSTALLER                    ║"
+echo "║           KESH CURSOR KIT 2.6 — INSTALLER                    ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 echo "Target:             $CURSOR_DIR"
@@ -68,6 +74,7 @@ echo "Install NITI:       $INSTALL_NITI"
 echo "Install healthcare pack: $INSTALL_HEALTHCARE"
 echo "Skip Clojure:       $SKIP_CLOJURE"
 echo "Install teams:      $INSTALL_TEAMS"
+echo "Archive local-only: $ARCHIVE_LOCAL_ONLY"
 echo "Agents:             $AGENT_N  |  Rules: $RULE_N (standards: $STD_N)"
 echo ""
 
@@ -146,6 +153,66 @@ if [[ "$INSTALL_KNOWLEDGE" == "1" ]]; then
   if [[ -d "$SCRIPT_DIR/optional/knowledge-cache" ]]; then
     install_dir "$SCRIPT_DIR/optional/knowledge-cache" "$CURSOR_DIR/knowledge/cache" "knowledge-cache schema notes"
   fi
+fi
+
+# Always publish human-readable kit docs AFTER knowledge so they are not clobbered.
+publish_kit_docs() {
+  if [[ ! -d "$SCRIPT_DIR/docs" ]]; then
+    return
+  fi
+  if [[ "$DRY_RUN" != "1" ]]; then
+    mkdir -p "$CURSOR_DIR/knowledge/kesh/docs"
+  fi
+  for doc in WORKFLOW.md ARCHITECTURE.md AGENTS.md SKILLS.md STANDARDS.md RULES.md INSTALL.md \
+             KNOWLEDGE.md KNOWLEDGE-DISCOVERY.md; do
+    if [[ -f "$SCRIPT_DIR/docs/$doc" ]]; then
+      copy_file "$SCRIPT_DIR/docs/$doc" "$CURSOR_DIR/knowledge/kesh/docs/$doc" "docs/$doc"
+    fi
+  done
+  if [[ -d "$SCRIPT_DIR/docs/kesh-2.0" ]]; then
+    install_dir "$SCRIPT_DIR/docs/kesh-2.0" "$CURSOR_DIR/knowledge/kesh/docs/kesh-2.0" "docs/kesh-2.0"
+  fi
+  copy_file "$SCRIPT_DIR/README.md" "$CURSOR_DIR/knowledge/kesh/README.md" "kit README.md"
+  copy_file "$SCRIPT_DIR/CHANGELOG.md" "$CURSOR_DIR/knowledge/kesh/CHANGELOG.md" "kit CHANGELOG.md"
+}
+publish_kit_docs
+
+# Employer / legacy files that live in ~/.cursor/rules but are NOT shipped by this kit
+# keep forcing old alwaysApply behavior across every tab. Move them aside (recoverable).
+if [[ "$ARCHIVE_LOCAL_ONLY" == "1" ]]; then
+  archive_dir="$CURSOR_DIR/rules-archived-local-only-$(date +%Y%m%d-%H%M%S)"
+  archived=0
+  for leftover in \
+      helpshift-architecture-knowledge.mdc \
+      helpshift-simple-language.mdc \
+      teams.mdc \
+      clojure-daily-tips.mdc \
+      clojure-review.mdc; do
+    src="$CURSOR_DIR/rules/$leftover"
+    # Keep teams.mdc if user explicitly asked to install it this run
+    if [[ "$leftover" == "teams.mdc" && "$INSTALL_TEAMS" == "1" ]]; then
+      continue
+    fi
+    # Top-level clojure duplicates standards/ — archive only if standards copy exists
+    if [[ "$leftover" == "clojure-daily-tips.mdc" || "$leftover" == "clojure-review.mdc" ]]; then
+      if [[ ! -f "$CURSOR_DIR/rules/standards/$leftover" && ! -f "$SCRIPT_DIR/rules/standards/$leftover" ]]; then
+        continue
+      fi
+    fi
+    if [[ -f "$src" ]]; then
+      if [[ "$archived" -eq 0 ]]; then
+        echo "  archive local-only rules → $archive_dir"
+        if [[ "$DRY_RUN" != "1" ]]; then
+          mkdir -p "$archive_dir"
+        fi
+        archived=1
+      fi
+      echo "    move $leftover"
+      if [[ "$DRY_RUN" != "1" ]]; then
+        mv "$src" "$archive_dir/"
+      fi
+    fi
+  done
 fi
 
 if [[ "$INSTALL_HOOKS" == "1" || "$INSTALL_NITI" == "1" ]]; then
@@ -227,12 +294,13 @@ echo "║                    INSTALLATION COMPLETE                      ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 echo "Next steps:"
-echo "  1. Restart Cursor (or reload window)"
+echo "  1. Reload Cursor window (Cmd+Shift+P → Developer: Reload Window)"
 echo "  2. In chat: @kesh <your task>"
-echo "  3. Read docs/WORKFLOW.md (adaptive 2.0 flows)"
+echo "  3. Adaptive lifecycle: $CURSOR_DIR/knowledge/kesh/docs/WORKFLOW.md"
 echo "  4. Optional: ./scripts/validate-kit.sh  (from this repo)"
 echo ""
-echo "Upgrade from 1.x: re-run ./install.sh — backups are created automatically."
+echo "Upgrade: re-run ./install.sh — backups are created automatically."
 echo "Breaking change: Agent Maximization replaced by adaptive task classes;"
 echo "Money Lens no longer hard-stops mandatory bug/security/incident work."
+echo "Local-only employer rules (if any) archived under $CURSOR_DIR/rules-archived-local-only-*."
 echo ""

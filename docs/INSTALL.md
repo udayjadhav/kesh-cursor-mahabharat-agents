@@ -1,4 +1,4 @@
-# Installation Guide (Kesh 2.0)
+# Installation Guide (Kesh 2.6)
 
 ## Requirements
 
